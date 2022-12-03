@@ -9,7 +9,7 @@ import {
 } from "discord.js";
 
 export interface CustomClient extends Client {
-  commands?: Collection<unknown, unknown>;
+  commands?: Collection<string, SlashCommand>;
 }
 
 export interface SlashCommand {
