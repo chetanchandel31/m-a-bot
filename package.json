@@ -1,0 +1,20 @@
+{
+  "name": "ml-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "keywords": [],
+  "author": "chetan chandel",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "ts-node": "10.9.1",
+    "typescript": "4.9.3"
+  },
+  "dependencies": {
+    "discord.js": "14.7.0"
+  }
+}
