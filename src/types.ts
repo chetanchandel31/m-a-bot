@@ -5,7 +5,12 @@ import {
   PermissionResolvable,
   Message,
   AutocompleteInteraction,
+  Client,
 } from "discord.js";
+
+export interface CustomClient extends Client {
+  commands?: Collection<unknown, unknown>;
+}
 
 export interface SlashCommand {
   data: SlashCommandBuilder | any;
@@ -33,22 +38,22 @@ export type GuildOption = keyof GuildOptions;
 //     execute: (...args?) => void
 // }
 
-declare global {
-  namespace NodeJS {
-    interface ProcessEnv {
-      TOKEN: string;
-      CLIENT_ID: string;
-      PREFIX: string;
-      MONGO_URI: string;
-      MONGO_DATABASE_NAME: string;
-    }
-  }
-}
+// declare global {
+//   namespace NodeJS {
+//     interface ProcessEnv {
+//       TOKEN: string;
+//       CLIENT_ID: string;
+//       PREFIX: string;
+//       MONGO_URI: string;
+//       MONGO_DATABASE_NAME: string;
+//     }
+//   }
+// }
 
-declare module "discord.js" {
-  export interface Client {
-    slashCommands: Collection<string, SlashCommand>;
-    commands: Collection<string, Command>;
-    cooldowns: Collection<string, number>;
-  }
-}
+// declare module "discord.js" {
+//   export interface Client {
+//     slashCommands: Collection<string, SlashCommand>;
+//     commands: Collection<string, Command>;
+//     cooldowns: Collection<string, number>;
+//   }
+// }
