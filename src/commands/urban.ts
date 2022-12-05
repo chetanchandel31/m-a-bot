@@ -5,10 +5,17 @@ import { request } from "undici";
 const trim = (str: string, max: number) =>
   str.length > max ? `${str.slice(0, max - 3)}...` : str;
 
+// TODO: paginated list of meanings
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName("urban")
-    .setDescription("Know urban dictionary meaning of any term"),
+    .setDescription("Know urban dictionary meaning of any term")
+    .addStringOption((option) =>
+      option
+        .setName("term")
+        .setDescription("The term you want to look up")
+        .setRequired(true)
+    ),
   async execute(interaction) {
     await interaction.deferReply();
 

@@ -5,7 +5,6 @@ export default async function onInteractionCreate(
   interaction: Interaction<CacheType>
 ) {
   if (!interaction.isChatInputCommand()) return;
-  console.log(interaction);
 
   const interactionClient = interaction.client as CustomClient;
 
