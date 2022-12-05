@@ -6,7 +6,8 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "deploy": "ts-node src/deploy-command.ts"
+    "deploy": "ts-node src/deploy-command.ts",
+    "deploy_global": "ts-node src/deploy-command.ts global"
   },
   "keywords": [],
   "author": "chetan chandel",
