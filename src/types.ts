@@ -1,11 +1,11 @@
 import {
   SlashCommandBuilder,
-  CommandInteraction,
   Collection,
   PermissionResolvable,
   Message,
   AutocompleteInteraction,
   Client,
+  ChatInputCommandInteraction,
 } from "discord.js";
 
 export interface CustomClient extends Client {
@@ -14,10 +14,12 @@ export interface CustomClient extends Client {
 
 export interface SlashCommand {
   data: SlashCommandBuilder | any;
-  execute: (interaction: CommandInteraction) => Promise<void>;
+  execute: (interaction: ChatInputCommandInteraction) => unknown;
   autocomplete?: (interaction: AutocompleteInteraction) => void;
   cooldown?: number; // in seconds
 }
+
+interface initialFetchedData {}
 
 export interface Command {
   name: string;
