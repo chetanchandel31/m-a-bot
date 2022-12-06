@@ -8,8 +8,17 @@ import {
   ChatInputCommandInteraction,
 } from "discord.js";
 
+export interface HeroListItem {
+  name: string;
+  heroId: string;
+  key: string;
+}
+interface initialFetchedData {
+  heroesList: HeroListItem[];
+}
 export interface CustomClient extends Client {
   commands?: Collection<string, SlashCommand>;
+  initialFetchedData?: initialFetchedData;
 }
 
 export interface SlashCommand {
@@ -18,8 +27,6 @@ export interface SlashCommand {
   autocomplete?: (interaction: AutocompleteInteraction) => void;
   cooldown?: number; // in seconds
 }
-
-interface initialFetchedData {}
 
 export interface Command {
   name: string;
