@@ -2,6 +2,69 @@ import { SlashCommandBuilder } from "discord.js";
 import { CustomClient, SingleHeroDetails, SlashCommand } from "src/types";
 import { request } from "undici";
 
+const getRelatedHeroEmbeds = (heroDetails: SingleHeroDetails) => {
+  const relatedHeroEmbeds = [];
+
+  const bestMate = heroDetails.data.counters.best;
+  const counter = heroDetails.data.counters.counters;
+  const counteredBy = heroDetails.data.counters.countered;
+
+  const color = 0x57f287;
+
+  if (bestMate.heroid) {
+    relatedHeroEmbeds.push({
+      color,
+      title: "Best teammate",
+      description: bestMate.name || "not found",
+      fields: [
+        {
+          name: "Tips",
+          value: bestMate.best_mate_tips || "nothing found",
+        },
+      ],
+      image: {
+        url: prependHttp(bestMate.icon),
+      },
+    });
+  }
+
+  if (counter.heroid) {
+    relatedHeroEmbeds.push({
+      color,
+      title: "Strong against",
+      description: counter.name || "not found",
+      fields: [
+        {
+          name: "Tips",
+          value: counter.restrain_hero_tips || "nothing found",
+        },
+      ],
+      image: {
+        url: prependHttp(counter.icon),
+      },
+    });
+  }
+
+  if (counteredBy.heroid) {
+    relatedHeroEmbeds.push({
+      color,
+      title: "Countered by",
+      description: counteredBy.name || "not found",
+      fields: [
+        {
+          name: "Tips",
+          value: counteredBy.by_restrain_tips || "nothing found",
+        },
+      ],
+      image: {
+        url: prependHttp(counteredBy.icon),
+      },
+    });
+  }
+
+  return relatedHeroEmbeds;
+};
+
 const removeTags = (str: string) => {
   if (str === "") return "nothing found";
   else {
@@ -89,6 +152,7 @@ export const command: SlashCommand = {
       embeds: [
         firstEmbed,
         ...getHeroSkillEmbeds(data),
+        ...getRelatedHeroEmbeds(data),
         {
           color: 0xefff00,
           image: {
