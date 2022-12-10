@@ -2,6 +2,59 @@ import { SlashCommandBuilder } from "discord.js";
 import { CustomClient, SingleHeroDetails, SlashCommand } from "src/types";
 import { request } from "undici";
 
+const getProgressBar = (
+  value: number,
+  maxValue: number = 100,
+  size: number = 10
+) => {
+  const percentage = value / maxValue; // Calculate the percentage of the bar
+  const progress = Math.round(size * percentage); // Calculate the number of square caracters to fill the progress side.
+  const emptyProgress = size - progress; // Calculate the number of dash caracters to fill the empty progress side.
+
+  const progressText = "⚪".repeat(progress); // Repeat is creating a string with progress * caracters in it
+  const emptyProgressText = "⚫".repeat(emptyProgress); // Repeat is creating a string with empty progress * caracters in it
+  const percentageText = Math.round(percentage * 100) + "%"; // Displaying the percentage of the bar
+
+  const bar =
+    "```[" + progressText + emptyProgressText + "] " + percentageText + "```"; // Creating the bar
+  return bar;
+};
+
+const getHeroStatsEmbed = (data: SingleHeroDetails) => ({
+  color: 0x5865f2,
+  title: `Stats (${data.data.name})`,
+  image: {
+    url: data.data.gallery_picture,
+  },
+  fields: [
+    {
+      name: "Durability",
+      value: data.data.alive
+        ? getProgressBar(Number(data.data.alive))
+        : "nothing found",
+    },
+    {
+      name: "Offense",
+      value: data.data.phy
+        ? getProgressBar(Number(data.data.phy))
+        : "nothing found",
+    },
+    {
+      name: "Control Effect",
+      value: data.data.mag
+        ? getProgressBar(Number(data.data.mag))
+        : "nothing found",
+    },
+    {
+      name: "Difficulty",
+      value: data.data.diff
+        ? getProgressBar(Number(data.data.diff))
+        : "nothing found",
+    },
+  ],
+  timestamp: new Date().toISOString(),
+});
+
 const getRelatedHeroEmbeds = (heroDetails: SingleHeroDetails) => {
   const relatedHeroEmbeds = [];
 
@@ -87,7 +140,7 @@ const getHeroSkillEmbeds = (heroDetails: SingleHeroDetails) => {
   const skills = heroDetails.data.skill.skill;
 
   return skills.map((skill, i) => ({
-    color: 0xefff00,
+    color: 0xed4245,
     title: `${skill.name} ${i === skills.length - 1 ? " (Passive)" : ""}`,
     description: removeTags(skill.des),
     fields: [
@@ -125,7 +178,7 @@ export const command: SlashCommand = {
     );
 
     if (!relatedHero) {
-      return interaction.editReply(`Couldn't find hero with that name`);
+      return interaction.editReply(`Couldn't find any hero with that name`);
     }
 
     const heroDetailsResult = await request(
@@ -136,16 +189,12 @@ export const command: SlashCommand = {
     console.log(relatedHero.heroid, { data });
 
     const firstEmbed = {
-      color: 0x0099ff,
+      color: 0xefff00,
       title: data.data.name,
       description: data.data.type,
-      thumbnail: {
-        url: data.data.gallery_picture,
-      },
       image: {
         url: data.data.cover_picture,
       },
-      timestamp: new Date().toISOString(),
     };
 
     await interaction.editReply({
@@ -153,12 +202,7 @@ export const command: SlashCommand = {
         firstEmbed,
         ...getHeroSkillEmbeds(data),
         ...getRelatedHeroEmbeds(data),
-        {
-          color: 0xefff00,
-          image: {
-            url: data.data.gallery_picture,
-          },
-        },
+        getHeroStatsEmbed(data),
       ],
     });
   },
