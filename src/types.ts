@@ -10,7 +10,7 @@ import {
 
 export interface HeroListItem {
   name: string;
-  heroId: string;
+  heroid: string;
   key: string;
 }
 interface initialFetchedData {
@@ -41,6 +41,79 @@ interface GuildOptions {
 }
 
 export type GuildOption = keyof GuildOptions;
+
+export interface SingleHeroDetails {
+  code: number;
+  message: string;
+  data: {
+    cover_picture: string;
+    gallery_picture: string;
+    // junling: "";
+    // cost: "";
+    // des: "";
+    mag: string;
+    phy: string;
+    alive: string;
+    diff: string;
+    name: string;
+    type: string;
+    skill: {
+      skill: {
+        name: string;
+        icon: string;
+        des: string;
+        tips: string;
+      }[];
+      item: {
+        main: {
+          icon: string;
+        };
+        secondary: {
+          icon: string;
+        };
+        battle_first: {
+          icon: string;
+        };
+        battle_second: {
+          icon: string;
+        };
+        tips: string;
+      };
+    };
+    gear: {
+      out_pack: {
+        equipment_id: number;
+        equip: {
+          icon: string;
+          name: string;
+          des: string[];
+        };
+      }[];
+      out_pack_tips: string;
+      verysix: [];
+    };
+    counters: {
+      best: {
+        heroid: string;
+        best_mate_tips: string;
+        name: string;
+        icon: string;
+      };
+      counters: {
+        heroid: string;
+        restrain_hero_tips: string;
+        name: string;
+        icon: string;
+      };
+      countered: {
+        heroid: string;
+        by_restrain_tips: string;
+        name: string;
+        icon: string;
+      };
+    };
+  };
+}
 // export interface BotEvent {
 //     name: string,
 //     once?: boolean | false,
