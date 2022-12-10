@@ -2,6 +2,16 @@ import { SlashCommandBuilder } from "discord.js";
 import { CustomClient, SingleHeroDetails, SlashCommand } from "src/types";
 import { request } from "undici";
 
+const removeTags = (str: string) => {
+  if (str === "") return "nothing found";
+  else {
+    // Regular expression to identify HTML tags in
+    // the input string. Replacing the identified
+    // HTML tag with a null string.
+    return str.replace(/(<([^>]+)>)/gi, "");
+  }
+};
+
 const prependHttp = (str: string) => {
   if (!str.startsWith("http")) {
     return `http:${str}`;
@@ -16,11 +26,11 @@ const getHeroSkillEmbeds = (heroDetails: SingleHeroDetails) => {
   return skills.map((skill, i) => ({
     color: 0xefff00,
     title: `${skill.name} ${i === skills.length - 1 ? " (Passive)" : ""}`,
-    description: skill.des,
+    description: removeTags(skill.des),
     fields: [
       {
         name: "Tips",
-        value: skill.tips,
+        value: skill.tips || "nothing found",
       },
     ],
     image: {
