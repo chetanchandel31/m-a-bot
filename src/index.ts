@@ -6,6 +6,7 @@ import onClientReady from "./eventHandlers/clientReady";
 import onInteractionCreate from "./eventHandlers/interactionCreate";
 import { CustomClient, HeroListItem } from "./types";
 import dotenv from "dotenv";
+import express from "express";
 
 dotenv.config();
 
@@ -55,4 +56,9 @@ async function main(): Promise<void> {
 
 main().catch((error) => {
   console.error(error, "🚨 top level await failed?");
+});
+
+const app = express();
+app.listen(process.env.PORT || 7000, () => {
+  console.log("LISTENING");
 });
