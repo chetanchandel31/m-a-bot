@@ -2,10 +2,12 @@ import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
 import fs from "node:fs";
 import path from "node:path";
 import { request } from "undici";
-import { token } from "./config.json";
 import onClientReady from "./eventHandlers/clientReady";
 import onInteractionCreate from "./eventHandlers/interactionCreate";
 import { CustomClient, HeroListItem } from "./types";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 async function main(): Promise<void> {
   console.log("Bot is starting...");
@@ -48,7 +50,7 @@ async function main(): Promise<void> {
   client.on(Events.InteractionCreate, onInteractionCreate);
 
   // Log in to Discord with your client's token
-  client.login(token);
+  client.login(process.env.TOKEN);
 }
 
 main().catch((error) => {

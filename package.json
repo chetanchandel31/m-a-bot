@@ -6,8 +6,9 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "dev": "nodemon src/index.ts",
-    "deploy": "ts-node src/deploy-command.ts",
-    "deploy_global": "ts-node src/deploy-command.ts global"
+    "deploy": "ts-node src/deploy-command.ts notGlobal dev",
+    "deploy_prod": "ts-node src/deploy-command.ts notGlobal prod",
+    "deploy_prod_global": "ts-node src/deploy-command.ts global prod"
   },
   "keywords": [],
   "author": "chetan chandel",
@@ -20,6 +21,7 @@
   },
   "dependencies": {
     "discord.js": "14.7.0",
+    "dotenv": "16.0.3",
     "undici": "5.13.0"
   }
 }
