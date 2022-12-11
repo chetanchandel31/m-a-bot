@@ -10,7 +10,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 async function main(): Promise<void> {
-  console.log("Bot is starting...");
+  console.log("Bot is starting...", typeof process.env.TOKEN);
 
   const heroListResult = await request(
     `https://mapi.mobilelegends.com/hero/list`
