@@ -158,7 +158,7 @@ const getHeroSkillEmbeds = (heroDetails: SingleHeroDetails) => {
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName("hero-details")
-    .setDescription("get a ml hero's details")
+    .setDescription("Get a ml hero's details")
     .addStringOption((option) =>
       option
         .setName("hero-name")
