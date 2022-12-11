@@ -62,3 +62,6 @@ const app = express();
 app.listen(process.env.PORT || 7000, () => {
   console.log("LISTENING");
 });
+app.get("/", (req, res) => {
+  res.send("woke up ☕");
+});
