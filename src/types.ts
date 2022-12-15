@@ -139,3 +139,127 @@ export interface SingleHeroDetails {
 //     cooldowns: Collection<string, number>;
 //   }
 // }
+
+/** jikan */
+export type JikanErrorResponse = {
+  status: number;
+  type: string;
+  message: string;
+  error: string;
+  report_url: string;
+};
+
+interface Datum {
+  mal_id: number;
+  url: string;
+  images: { jpg: Image; webp: Image };
+  trailer: Trailer;
+  approved: boolean;
+  titles: Title[];
+  title: string;
+  title_english: string;
+  title_japanese: string;
+  title_synonyms: string[];
+  type: string;
+  source: string;
+  episodes: number;
+  status: string;
+  airing: boolean;
+  aired: Aired;
+  duration: string;
+  rating: string;
+  score: number;
+  scored_by: number;
+  rank: number;
+  popularity: number;
+  members: number;
+  favorites: number;
+  synopsis: string;
+  background: string | null;
+  season: string;
+  year: number;
+  broadcast: Broadcast;
+  producers: Demographic[];
+  licensors: Demographic[];
+  studios: Demographic[];
+  genres: Demographic[];
+  explicit_genres: Demographic[];
+  themes: Demographic[];
+  demographics: Demographic[];
+}
+
+interface Aired {
+  from: Date;
+  to: Date;
+  prop: Prop;
+  string: string | null;
+}
+
+interface Prop {
+  from: From;
+  to: From;
+}
+
+interface From {
+  day: number;
+  month: number;
+  year: number;
+}
+
+interface Broadcast {
+  day: string;
+  time: string;
+  timezone: string;
+  string: string;
+}
+
+interface Demographic {
+  mal_id: number;
+  type: string;
+  name: string;
+  url: string;
+}
+
+interface Image {
+  image_url: string;
+  small_image_url: string;
+  large_image_url: string;
+}
+
+interface Title {
+  type: string;
+  title: string;
+}
+
+interface Trailer {
+  youtube_id: null | string;
+  url: null | string;
+  embed_url: null | string;
+  images: Images;
+}
+
+interface Images {
+  image_url: null | string;
+  small_image_url: null | string;
+  medium_image_url: null | string;
+  large_image_url: null | string;
+  maximum_image_url: null | string;
+}
+
+interface Pagination {
+  last_visible_page: number;
+  has_next_page: boolean;
+  current_page: number;
+  items: Items;
+}
+
+interface Items {
+  count: number;
+  total: number;
+  per_page: number;
+}
+
+export interface AnimeSearchResponse {
+  pagination: Pagination;
+  data: Datum[];
+}
