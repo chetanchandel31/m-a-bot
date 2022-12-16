@@ -28,13 +28,13 @@ export const command: SlashCommand = {
     await interaction.deferReply();
     const animeName = interaction.options.getString("anime-name") as string; // it is "required" option so will always be there
 
-    const heroDetailsResult = await request(
+    const result = await request(
       `https://api.jikan.moe/v4/anime?letter=${encodeURIComponent(
         animeName
       )}&limit=10&order_by=popularity`
     );
     const data: AnimeSearchResponse | JikanErrorResponse =
-      await heroDetailsResult.body.json();
+      await result.body.json();
 
     if (isJikanError(data)) {
       return await interaction.editReply(
