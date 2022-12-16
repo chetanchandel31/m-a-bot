@@ -125,7 +125,7 @@ export const command: SlashCommand = {
       );
     }
 
-    const approvedMangas = data.data.filter((anime) => anime.approved);
+    const approvedMangas = data.data.filter((manga) => manga.approved);
     const totalResultsCount = approvedMangas.length;
 
     await interaction.editReply({
