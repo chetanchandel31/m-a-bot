@@ -1,4 +1,9 @@
-import { APIEmbedField, SlashCommandBuilder } from "discord.js";
+import {
+  APIEmbed,
+  APIEmbedField,
+  JSONEncodable,
+  SlashCommandBuilder,
+} from "discord.js";
 import {
   AnimeSearchResponse,
   JikanErrorResponse,
@@ -45,7 +50,6 @@ export const command: SlashCommand = {
       content: `${totalResultsCount} results for ${"`" + animeName + "`"}`,
     });
 
-    // dedicate an entire embed to background and see if it crashes
     data.data.forEach(async (anime, i) => {
       if (!anime.approved) return;
 
@@ -143,36 +147,37 @@ export const command: SlashCommand = {
         },
       ];
 
+      const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
+        {
+          color: 0x57f287,
+          author: {
+            name: `Rank #${anime.rank} | Popularity #${anime.popularity}`,
+          },
+          title: `${anime.title}`,
+          image: {
+            url: anime.images.jpg.large_image_url,
+          },
+          fields,
+          timestamp: new Date().toISOString(),
+          url: anime.url,
+        },
+      ];
+
+      if (anime.background) {
+        embeds.push({
+          color: 0xefff00,
+          title: `Background`,
+          description: anime.background.slice(0, 4000),
+        });
+      }
+
       await interaction.followUp({
         content: `**${i + 1}** of **${totalResultsCount}**
 ***Synopsis*** (*${anime.title}*)
 ${"```" + anime.synopsis + "```"}
 \u200b
-${
-  anime.background
-    ? "```" +
-      anime.background?.slice(0, 470) +
-      (anime.background.length > 470 ? "..." : "") +
-      "```" +
-      "\u200b"
-    : ""
-}
 `,
-        embeds: [
-          {
-            color: 0xefff00,
-            author: {
-              name: `Rank #${anime.rank} | Popularity #${anime.popularity}`,
-            },
-            title: `${anime.title} (${anime.title_japanese})`,
-            image: {
-              url: anime.images.jpg.large_image_url,
-            },
-            fields,
-            timestamp: new Date().toISOString(),
-            url: anime.url,
-          },
-        ],
+        embeds,
       });
     });
   },
