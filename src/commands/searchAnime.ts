@@ -31,7 +31,7 @@ export const command: SlashCommand = {
     const heroDetailsResult = await request(
       `https://api.jikan.moe/v4/anime?letter=${encodeURIComponent(
         animeName
-      )}&limit=10`
+      )}&limit=10&order_by=popularity`
     );
     const data: AnimeSearchResponse | JikanErrorResponse =
       await heroDetailsResult.body.json();
@@ -42,15 +42,14 @@ export const command: SlashCommand = {
       );
     }
 
-    const totalResultsCount = data.data.filter(
-      (anime) => anime.approved
-    ).length;
+    const approvedAnime = data.data.filter((anime) => anime.approved);
+    const totalResultsCount = approvedAnime.length;
 
     await interaction.editReply({
       content: `${totalResultsCount} results for ${"`" + animeName + "`"}`,
     });
 
-    data.data.forEach(async (anime, i) => {
+    approvedAnime.reverse().forEach(async (anime, i) => {
       if (!anime.approved) return;
 
       const fields: APIEmbedField[] | undefined = [
@@ -172,7 +171,7 @@ export const command: SlashCommand = {
       }
 
       await interaction.followUp({
-        content: `**${i + 1}** of **${totalResultsCount}**
+        content: `**${totalResultsCount - i}** of **${totalResultsCount}**
 ***Synopsis*** (*${anime.title}*)
 ${"```" + anime.synopsis + "```"}
 \u200b
