@@ -124,7 +124,7 @@ export const command: SlashCommand = {
 
       await interaction.followUp({
         content: `**${totalResultsCount - i}** of **${totalResultsCount}**
-  ***About*** (*${character.name}*)
+***About*** (*${character.name}*)
   ${
     "```" +
     (character.about

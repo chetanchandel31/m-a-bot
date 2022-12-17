@@ -24,6 +24,17 @@ export const command: SlashCommand = {
         .setDescription("name of the anime you are looking for")
         .setRequired(true)
     ),
+  // .addIntegerOption((option) =>
+  //   option
+  //     .setName("max-search-results")
+  //     .setDescription("upto how many search results can bot send?")
+  //     .addChoices(
+  //       ...[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((choice) => ({
+  //         value: choice,
+  //         name: String(choice),
+  //       }))
+  //     )
+  // )
   async execute(interaction) {
     await interaction.deferReply();
     const animeName = interaction.options.getString("anime-name") as string; // it is "required" option so will always be there
