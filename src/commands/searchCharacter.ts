@@ -56,9 +56,7 @@ const isJikanError = (data: unknown): data is JikanErrorResponse =>
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName("search-character")
-    .setDescription(
-      "Character name from any anime, manga, manhwa, lightnovel etc"
-    )
+    .setDescription("Search for character from any anime, manga, manhwa etc")
     .addStringOption((option) =>
       option
         .setName("character-name")
