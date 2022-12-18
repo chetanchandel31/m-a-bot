@@ -90,7 +90,7 @@ export const command: SlashCommand = {
     });
 
     data.data.reverse().forEach(async (character, i) => {
-      const fields: APIEmbedField[] | undefined = [
+      const fields: APIEmbedField[] = [
         {
           name: "Nicknames",
           value:

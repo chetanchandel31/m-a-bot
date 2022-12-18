@@ -61,9 +61,7 @@ export const command: SlashCommand = {
     });
 
     approvedAnime.reverse().forEach(async (anime, i) => {
-      if (!anime.approved) return;
-
-      const fields: APIEmbedField[] | undefined = [
+      const fields: APIEmbedField[] = [
         {
           name: "Season",
           value: anime.season ?? "-",

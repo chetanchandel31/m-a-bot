@@ -133,14 +133,7 @@ export const command: SlashCommand = {
     });
 
     approvedMangas.reverse().forEach(async (manga, i) => {
-      if (!manga.approved) return;
-
-      const fields: APIEmbedField[] | undefined = [
-        // {
-        //   name: "Season",
-        //   value: manga.season ?? "-",
-        //   inline: true,
-        // },
+      const fields: APIEmbedField[] = [
         {
           name: "Titles",
           value:
@@ -172,11 +165,6 @@ export const command: SlashCommand = {
           value: manga.type,
           inline: true,
         },
-        // {
-        //   name: "Source",
-        //   value: manga.source,
-        //   inline: true,
-        // },
         {
           name: "Studio",
           value:
@@ -198,7 +186,6 @@ export const command: SlashCommand = {
               .join(", ") || "-",
           inline: true,
         },
-
         {
           name: "Theme",
           value: manga.themes.map((theme) => `${theme.name}`).join(", ") || "-",
