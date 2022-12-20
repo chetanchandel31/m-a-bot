@@ -97,6 +97,15 @@ interface Items {
 const isJikanError = (data: unknown): data is JikanErrorResponse =>
   !!data && typeof data === "object" && "error" in data;
 
+const getFormattedScore = (score: number, scored_by: number) =>
+  "⭐".repeat(Math.round(score)) +
+  "⚫".repeat(10 - Math.round(score)) +
+  +" " +
+  score +
+  "/10" +
+  "\n" +
+  `(scored by ${scored_by} users)`;
+
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName("search-manga")
@@ -162,7 +171,7 @@ export const command: SlashCommand = {
         },
         {
           name: "Type",
-          value: manga.type,
+          value: manga.type ?? "-",
           inline: true,
         },
         {
@@ -209,14 +218,9 @@ export const command: SlashCommand = {
         },
         {
           name: "Score",
-          value:
-            "⭐".repeat(Math.round(manga.score)) +
-            "⚫".repeat(10 - Math.round(manga.score)) +
-            +" " +
-            manga.score +
-            "/10" +
-            "\n" +
-            `(scored by ${manga.scored_by} users)`,
+          value: manga.score
+            ? getFormattedScore(manga.score, manga.scored_by)
+            : "-",
         },
       ];
 

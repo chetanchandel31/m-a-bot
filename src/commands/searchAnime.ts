@@ -14,6 +14,15 @@ import { request } from "undici";
 const isJikanError = (data: unknown): data is JikanErrorResponse =>
   !!data && typeof data === "object" && "error" in data;
 
+const getFormattedScore = (score: number, scored_by: number) =>
+  "⭐".repeat(Math.round(score)) +
+  "⚫".repeat(10 - Math.round(score)) +
+  +" " +
+  score +
+  "/10" +
+  "\n" +
+  `(scored by ${scored_by} users)`;
+
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
     .setName("search-anime")
@@ -84,22 +93,22 @@ export const command: SlashCommand = {
         },
         {
           name: "Duration",
-          value: anime.duration,
+          value: anime.duration ?? "-",
           inline: true,
         },
         {
           name: "Aired",
-          value: anime.aired.string + (anime.airing ? " (on-going)" : ""),
+          value: anime.aired?.string + (anime.airing ? " (on-going)" : ""),
           inline: true,
         },
         {
           name: "Type",
-          value: anime.type,
+          value: anime.type ?? "-",
           inline: true,
         },
         {
           name: "Source",
-          value: anime.source,
+          value: anime.source ?? "-",
           inline: true,
         },
         {
@@ -139,29 +148,25 @@ export const command: SlashCommand = {
         },
         {
           name: "Rating",
-          value: anime.rating,
+          value: anime.rating ?? "-",
           inline: true,
         },
         {
           name: "Score",
-          value:
-            "⭐".repeat(Math.round(anime.score)) +
-            "⚫".repeat(10 - Math.round(anime.score)) +
-            +" " +
-            anime.score +
-            "/10" +
-            "\n" +
-            `(scored by ${anime.scored_by} users)`,
+          value: anime.score
+            ? getFormattedScore(anime.score, anime.scored_by)
+            : "-",
         },
       ];
-
       const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
         {
           color: 0x57f287,
           author: {
-            name: `Rank #${anime.rank} | Popularity #${anime.popularity}`,
+            name: `Rank #${anime.rank ?? "-"} | Popularity #${
+              anime.popularity ?? "-"
+            }`,
           },
-          title: `${anime.title}`,
+          title: `${anime.title ?? "-"}`,
           image: {
             url: anime.images.jpg.large_image_url,
           },
