@@ -13,8 +13,15 @@ export interface HeroListItem {
   heroid: string;
   key: string;
 }
+export interface Genre {
+  mal_id: number;
+  name: string;
+  url: string;
+  count: number;
+}
 interface initialFetchedData {
   heroesList: HeroListItem[];
+  genreList: Genre[];
 }
 export interface CustomClient extends Client {
   commands?: Collection<string, SlashCommand>;

@@ -4,7 +4,7 @@ import path from "node:path";
 import { request } from "undici";
 import onClientReady from "./eventHandlers/clientReady";
 import onInteractionCreate from "./eventHandlers/interactionCreate";
-import { CustomClient, HeroListItem } from "./types";
+import { CustomClient, Genre, HeroListItem } from "./types";
 import dotenv from "dotenv";
 import express from "express";
 
@@ -13,10 +13,16 @@ dotenv.config();
 async function main(): Promise<void> {
   console.log("Bot is starting...", typeof process.env.TOKEN);
 
+  // fetch initial data
   const heroListResult = await request(
     `https://mapi.mobilelegends.com/hero/list`
   );
   const { data }: { data: HeroListItem[] } = await heroListResult.body.json();
+
+  const genreListResult = await request(
+    `https://api.jikan.moe/v4/genres/anime`
+  );
+  const genreList: { data: Genre[] } = await genreListResult.body.json();
 
   // create client instance
   const client: CustomClient = new Client({
@@ -24,7 +30,7 @@ async function main(): Promise<void> {
   });
 
   client.commands = new Collection();
-  client.initialFetchedData = { heroesList: data };
+  client.initialFetchedData = { heroesList: data, genreList: genreList.data };
 
   // put all commands from `/commands` dir in `client.commands`
   const commandsPath = path.join(__dirname, "commands");
