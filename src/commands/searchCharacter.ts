@@ -4,7 +4,7 @@ import {
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
-import { isJikanError } from "src/helpers/isJikanError";
+import { isJikanError } from "../helpers/isJikanError";
 import { JikanErrorResponse, SlashCommand } from "src/types";
 import { request } from "undici";
 

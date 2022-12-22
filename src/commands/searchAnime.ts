@@ -4,8 +4,8 @@ import {
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
-import { getFormattedScore } from "src/helpers/getFormattedScore";
-import { isJikanError } from "src/helpers/isJikanError";
+import { getFormattedScore } from "../helpers/getFormattedScore";
+import { isJikanError } from "../helpers/isJikanError";
 import {
   AnimeSearchResponse,
   JikanErrorResponse,
