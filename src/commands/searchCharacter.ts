@@ -4,6 +4,7 @@ import {
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
+import { isJikanError } from "src/helpers/isJikanError";
 import { JikanErrorResponse, SlashCommand } from "src/types";
 import { request } from "undici";
 
@@ -49,9 +50,6 @@ export interface Items {
   total: number;
   per_page: number;
 }
-
-const isJikanError = (data: unknown): data is JikanErrorResponse =>
-  !!data && typeof data === "object" && "error" in data;
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()

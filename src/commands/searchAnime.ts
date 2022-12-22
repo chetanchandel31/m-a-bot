@@ -4,24 +4,14 @@ import {
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
+import { getFormattedScore } from "src/helpers/getFormattedScore";
+import { isJikanError } from "src/helpers/isJikanError";
 import {
   AnimeSearchResponse,
   JikanErrorResponse,
   SlashCommand,
 } from "src/types";
 import { request } from "undici";
-
-const isJikanError = (data: unknown): data is JikanErrorResponse =>
-  !!data && typeof data === "object" && "error" in data;
-
-const getFormattedScore = (score: number, scored_by: number) =>
-  "⭐".repeat(Math.round(score)) +
-  "⚫".repeat(10 - Math.round(score)) +
-  +" " +
-  score +
-  "/10" +
-  "\n" +
-  `(scored by ${scored_by} users)`;
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
