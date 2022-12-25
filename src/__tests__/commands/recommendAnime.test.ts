@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, jest, test } from "@jest/globals";
+import { describe, expect, jest, test } from "@jest/globals";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AnimeSearchResponse, Genre } from "src/types";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../../commands/recommendAnime";
 import { getAnime, GetAnimeQueryParams } from "../../helpers/getAnime";
 
-const mockTotalAnimeCount = 12;
+const mockTotalAnimeCount = 4;
 
 jest.mock("../../helpers/getAnime", () => {
   return {
@@ -103,7 +103,10 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({ genres: "1", limit: 10 });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
+
+    expect(getAnimeCallFirstArg?.genres).toBe("1");
   });
 
   test("should call jikan-API when it gets valid genre name from option(user DID NOT click on suggestion but typed correct genre name)", async () => {
@@ -115,7 +118,10 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({ genres: "2", limit: 10 });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
+
+    expect(getAnimeCallFirstArg?.genres).toBe("2");
   });
 
   test("should use fuzzy search when reading user-typed genre, to allow some room for spelling error", async () => {
@@ -127,7 +133,10 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({ genres: "1", limit: 10 });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
+
+    expect(getAnimeCallFirstArg?.genres).toBe("1");
   });
 
   test(`upon receiving invalid genre
@@ -155,11 +164,10 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({
-      genres: "1",
-      limit: 10,
-      start_date: 2016,
-    });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
+
+    expect(getAnimeCallFirstArg?.start_date).toBe(2016);
   });
 
   test("should be able to call jikan-API with `end-date`", async () => {
@@ -171,11 +179,10 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({
-      genres: "1",
-      limit: 10,
-      end_date: 2020,
-    });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
+
+    expect(getAnimeCallFirstArg?.end_date).toBe(2020);
   });
 
   test("should be able to call jikan-API with `start-date` & `end-date`", async () => {
@@ -187,12 +194,11 @@ describe("/recommend-anime genre startDate endDate", () => {
 
     await executeV2(interaction);
 
-    expect(getAnime).toBeCalledWith({
-      genres: "1",
-      limit: 10,
-      start_date: 2016,
-      end_date: 2020,
-    });
+    const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
+    const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
+
+    expect(getAnimeCallFirstArg?.start_date).toBe(2016);
+    expect(getAnimeCallFirstArg?.end_date).toBe(2020);
   });
 
   test("should send error message when `end-date` < `start-date` and should NOT even call jikan-API", async () => {
