@@ -12,6 +12,7 @@ import { isJikanError } from "../helpers/isJikanError";
 import {
   AnimeSearchResponse,
   CustomClient,
+  Genre,
   JikanErrorResponse,
   SlashCommand,
 } from "src/types";
@@ -251,26 +252,46 @@ ${"```" + randomAnime.synopsis + "```"}
   },
 };
 
-function getRelatedGenre(interaction: ChatInputCommandInteraction<CacheType>) {
+export function getRelatedGenre(
+  interaction: ChatInputCommandInteraction<CacheType>
+) {
   const genre = interaction.options.getString("genre") as string;
   const interactionClient = interaction.client as CustomClient;
 
+  let relatedGenre: Genre | undefined =
+    interactionClient.initialFetchedData?.genreList.find(
+      (_genre) => String(_genre.mal_id) === genre
+    );
+
   // try to find genre using both id and name
-  const fuse = new Fuse(interactionClient.initialFetchedData?.genreList ?? [], {
-    keys: ["name"],
-    threshold: 0.4,
-  });
+  if (!relatedGenre) {
+    const fuse = new Fuse(
+      interactionClient.initialFetchedData?.genreList ?? [],
+      {
+        keys: ["name"],
+        threshold: 0.4,
+      }
+    );
+
+    relatedGenre = fuse.search(genre).map(({ item }) => item)[0];
+  }
+
+  return relatedGenre;
 }
 
 export const executeV2 = async (
   interaction: ChatInputCommandInteraction<CacheType>
 ) => {
   await interaction.deferReply();
-  const genre = interaction.options.getString("genre") as string;
+  const genre = getRelatedGenre(interaction);
+
+  if (!genre) {
+    return await interaction.editReply("no such genre found 🧐");
+  }
 
   const perPage = 10;
 
-  const data = await getAnime({ genres: genre, limit: perPage });
+  const data = await getAnime({ genres: String(genre.mal_id), limit: perPage });
 
   if (isJikanError(data)) {
     return await interaction.editReply(

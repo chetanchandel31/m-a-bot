@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, jest, test } from "@jest/globals";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AnimeSearchResponse, Genre } from "src/types";
-import { executeV2 } from "../../commands/recommendAnime";
+import { executeV2, getRelatedGenre } from "../../commands/recommendAnime";
 import { getAnime, GetAnimeQueryParams } from "../../helpers/getAnime";
 
 jest.mock("../../helpers/getAnime", () => {
@@ -44,6 +44,7 @@ function getMockInteraction(
   const genreList: Genre[] = [
     { count: 5, mal_id: 1, name: "dummy", url: "xyz.com" },
     { count: 6, mal_id: 2, name: "dummy2", url: "xyz2.com" },
+    { count: 6, mal_id: 12, name: "dummy4", url: "xyz4.com" },
   ];
 
   const mockInteraction: ChatInputCommandInteraction<CacheType> = {
@@ -52,6 +53,7 @@ function getMockInteraction(
         genreList,
       },
     },
+    editReply: jest.fn().mockName("editReply"),
     options: {
       getString: jest.fn((name: string) => {
         if (name === "genre") return commandOptions.genre;
@@ -113,19 +115,32 @@ describe("/recommend-anime genre startDate endDate", () => {
     expect(getAnime).toBeCalledWith({ genres: "2", limit: 10 });
   });
 
-  test.todo(
-    "should use fuzzy search when reading user-typed genre, to allow some room for spelling error"
-  );
+  test("should use fuzzy search when reading user-typed genre, to allow some room for spelling error", async () => {
+    const interaction = getMockInteraction({
+      genre: "dumey",
+      startDate: null,
+      endDate: null,
+    });
 
-  test(`upon recei?ving invalid genre
+    await executeV2(interaction);
+
+    expect(getAnime).toBeCalledWith({ genres: "1", limit: 10 });
+  });
+
+  test(`upon receiving invalid genre
   1. don't call ?jikan-API
   2. send some error message
-  `, () => {
-    const interaction = getMockInteraction();
+  `, async () => {
+    const interaction = getMockInteraction({
+      genre: "some_name_that's_definitely_not_a_genre",
+      endDate: null,
+      startDate: null,
+    });
 
-    expect(2 + 2).toBe(4);
+    await executeV2(interaction);
 
-    expect(interaction.deferReply).not.toHaveBeenCalled();
+    expect(getAnime).not.toBeCalled();
+    expect(interaction.editReply).toBeCalledWith("no such genre found 🧐");
   });
 
   test.todo("should be able to call jikan-API with `start-date`");
@@ -142,4 +157,38 @@ describe("/recommend-anime genre startDate endDate", () => {
   // .mockImplementation(() => 'some-mocked-brand')
 
   // spy.mockRestore()
+});
+
+describe("getRelatedGenre", () => {
+  test("should be able to return related genre using id", () => {
+    const interaction = getMockInteraction({
+      genre: "12",
+      endDate: null,
+      startDate: null,
+    });
+    const genre = getRelatedGenre(interaction);
+
+    expect(genre).toEqual({
+      count: 6,
+      mal_id: 12,
+      name: "dummy4",
+      url: "xyz4.com",
+    });
+  });
+
+  test("if no id matches with passed, should check name to find related genre, even if there is small spelling error", () => {
+    const interaction = getMockInteraction({
+      genre: "dumy4",
+      endDate: null,
+      startDate: null,
+    });
+    const genre = getRelatedGenre(interaction);
+
+    expect(genre).toEqual({
+      count: 6,
+      mal_id: 12,
+      name: "dummy4",
+      url: "xyz4.com",
+    });
+  });
 });
