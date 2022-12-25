@@ -2,7 +2,7 @@ import { describe, expect, jest, test } from "@jest/globals";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AnimeSearchResponse, Genre } from "src/types";
 import {
-  executeV2,
+  command,
   getRelatedGenre,
   getTotalAnimeCount,
 } from "../../commands/recommendAnime";
@@ -20,8 +20,8 @@ jest.mock("../../helpers/getAnime", () => {
             has_next_page: false,
             current_page: 0,
             items: {
-              count: mockTotalAnimeCount,
-              total: 0,
+              count: 0,
+              total: mockTotalAnimeCount,
               per_page: 0,
             },
           },
@@ -76,20 +76,10 @@ function getMockInteraction(
 }
 
 describe("/recommend-anime genre startDate endDate", () => {
-  // don't know if it will be valid or invalid genre but it is safe to assume `genre` will always be there because it is a required option
-  // `startDate` and `endDate` will be optional options
-
-  // different ways of using the command -> expected behaviours
-  // genre (valid or invalid genre)
-  // genre startDate
-  // genre endDate
-  // genre startDate? endDate
-  // ├── genre sta?rtDate endDate (endDate  < startDate)
-
   test("it should initially show 'bot is thinking...', because we intend to make async operations and get back", async () => {
     const interaction = getMockInteraction();
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     expect(interaction.deferReply).toHaveBeenCalled();
   });
@@ -101,7 +91,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: null,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
@@ -116,7 +106,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: null,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
@@ -131,7 +121,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: null,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[0][0];
@@ -149,7 +139,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       startDate: null,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     expect(getAnime).not.toBeCalled();
     expect(interaction.editReply).toBeCalledWith("no such genre found 🧐");
@@ -162,7 +152,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: null,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
@@ -177,7 +167,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: 2020,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
@@ -192,7 +182,7 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: 2020,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     const mockGetAnime = getAnime as jest.MockedFunction<typeof getAnime>;
     const getAnimeCallFirstArg = mockGetAnime.mock.calls[1][0];
@@ -208,11 +198,11 @@ describe("/recommend-anime genre startDate endDate", () => {
       endDate: 2018,
     });
 
-    await executeV2(interaction);
+    await command.execute(interaction);
 
     expect(getAnime).not.toBeCalled();
     expect(interaction.editReply).toBeCalledWith(
-      "invalid range, `start-date` shouldn't be greater than `end-date`"
+      "*(2020 - 2018)*: invalid range, how can `start-date` be greater than `end-date` :person_shrugging:"
     );
   });
 

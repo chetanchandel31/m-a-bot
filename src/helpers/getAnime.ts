@@ -18,7 +18,7 @@ export const getAnime = async (
     let stringifiedQueryParams: string[] = [];
 
     Object.entries(queryParams).forEach(([key, value]) => {
-      stringifiedQueryParams.push(`${key}=${value}`);
+      if (value !== undefined) stringifiedQueryParams.push(`${key}=${value}`);
     });
 
     baseUrl = baseUrl + "?" + stringifiedQueryParams.join("&");

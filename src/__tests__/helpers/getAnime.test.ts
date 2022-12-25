@@ -41,6 +41,12 @@ test("can call undici's `request` with base url and 1 query param ", () => {
   expect(request).toBeCalledWith("https://api.jikan.moe/v4/anime?limit=10");
 });
 
+test("shouldn't make call to incorrect url if a query is passed as `undefiend`", () => {
+  getAnime({ limit: 10, start_date: undefined });
+
+  expect(request).toBeCalledWith("https://api.jikan.moe/v4/anime?limit=10");
+});
+
 test("can call undici's `request` with base url and multiple query param ", () => {
   getAnime({ limit: 10, page: 4, genres: "1234", start_date: 2018 });
 

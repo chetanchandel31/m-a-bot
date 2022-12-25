@@ -13,10 +13,8 @@ import {
   AnimeSearchResponse,
   CustomClient,
   Genre,
-  JikanErrorResponse,
   SlashCommand,
 } from "src/types";
-import { request } from "undici";
 import { getAnime } from "../helpers/getAnime";
 
 const getRandomNum = (min: number, max: number): number =>
@@ -141,117 +139,6 @@ const getEmbedsFromAnime = (randomAnime: AnimeSearchResponse["data"][0]) => {
   return embeds;
 };
 
-export const command: SlashCommand = {
-  data: new SlashCommandBuilder()
-    .setName("recommend-anime")
-    .setDescription("Recommends random anime based on a genre")
-    .addStringOption((option) =>
-      option
-        .setName("genre")
-        .setDescription("What genre anime should get recommended?")
-        .setRequired(true)
-        .setAutocomplete(true)
-    )
-    .addIntegerOption((option) =>
-      option
-        .setName("start-date")
-        // TODO: check these desc
-        .setDescription("anime aired before this year won't get recommended")
-        .setMinValue(2000)
-        .setMaxValue(new Date().getFullYear() - 1)
-    )
-    .addIntegerOption((option) =>
-      option
-        .setName("end-date")
-        // TODO: check these desc
-        .setDescription("anime aired after this year won't get recommended")
-        .setMinValue(2000)
-        .setMaxValue(new Date().getFullYear() - 1)
-    ),
-  async autocomplete(interaction) {
-    const interactionClient = interaction.client as CustomClient;
-
-    const focusedValue = interaction.options.getFocused();
-    const choices = interactionClient.initialFetchedData?.genreList ?? [];
-
-    const fuse = new Fuse(choices, {
-      keys: ["name"],
-      threshold: 0.4,
-    });
-
-    const filtered = focusedValue
-      ? fuse.search(focusedValue).map(({ item }) => item)
-      : choices;
-
-    await interaction.respond(
-      filtered
-        .map((choice) => ({
-          name: choice.name + ` (Total anime: ~ ${choice.count})`,
-          value: String(choice.mal_id),
-        }))
-        .slice(0, 25)
-    );
-  },
-  async execute(interaction) {
-    await interaction.deferReply();
-
-    const interactionClient = interaction.client as CustomClient;
-
-    const genreId = interaction.options.getString("genre") as string;
-    const year = interaction.options.getInteger("year");
-
-    const relatedGenre = interactionClient.initialFetchedData?.genreList.find(
-      (genre) => String(genre.mal_id) === genreId
-    );
-
-    if (!relatedGenre) {
-      return await interaction.editReply(
-        "invalid genre, make sure you select one of the suggested options"
-      );
-    }
-
-    // random page-number based on `relatedGenre.count`
-    const perPage = 10;
-    const totalPageCount = Math.round(relatedGenre.count / perPage);
-    const randomPage = getRandomNum(1, totalPageCount);
-
-    const result = await request(
-      `https://api.jikan.moe/v4/anime?genres=${genreId}&page=${randomPage}&limit=${perPage}`
-    );
-    const data: AnimeSearchResponse | JikanErrorResponse =
-      await result.body.json();
-
-    if (isJikanError(data)) {
-      return await interaction.editReply(
-        "there was an error ``` " + data + " ```"
-      );
-    }
-
-    const approvedAnime = data.data.filter((anime) => anime.approved);
-
-    if (approvedAnime.length < 1) {
-      return interaction.editReply("try again");
-    }
-
-    // random number based on approved anime on current page
-    const randomAnimeIndex = getRandomNum(0, approvedAnime.length - 1);
-    const randomAnime = approvedAnime[randomAnimeIndex];
-
-    // prepare and send embed
-
-    await interaction.followUp({
-      content: `
-Random **${relatedGenre.name}** anime:
-
-***Synopsis*** (*${randomAnime.title}*)
-${"```" + randomAnime.synopsis + "```"}
-\u200b
-`,
-      embeds: getEmbedsFromAnime(randomAnime),
-    });
-  },
-};
-
 export function getRelatedGenre(
   interaction: ChatInputCommandInteraction<CacheType>
 ) {
@@ -295,7 +182,7 @@ export async function getTotalAnimeCount({
     try {
       const res = await getAnime({ genres: String(relatedGenre.mal_id) });
       if (!isJikanError(res)) {
-        totalCount = res.pagination.items.count;
+        totalCount = res.pagination.items.total;
       } else {
         // handle api fail
       }
@@ -307,35 +194,132 @@ export async function getTotalAnimeCount({
   return totalCount;
 }
 
-export const executeV2 = async (
-  interaction: ChatInputCommandInteraction<CacheType>
-) => {
-  await interaction.deferReply();
-  const genre = getRelatedGenre(interaction);
-  const start_date = interaction.options.getInteger("start-date") ?? undefined;
-  const end_date = interaction.options.getInteger("end-date") ?? undefined;
+export const command: SlashCommand = {
+  data: new SlashCommandBuilder()
+    .setName("recommend-anime")
+    .setDescription("Recommends random anime based on a genre")
+    .addStringOption((option) =>
+      option
+        .setName("genre")
+        .setDescription("What genre anime should get recommended?")
+        .setRequired(true)
+        .setAutocomplete(true)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("start-date")
+        .setDescription("anime aired before this year won't get recommended")
+        .setMinValue(1950)
+        .setMaxValue(new Date().getFullYear() + 1)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("end-date")
+        .setDescription("anime aired after this year won't get recommended")
+        .setMinValue(1950)
+        .setMaxValue(new Date().getFullYear() + 1)
+    ),
+  async autocomplete(interaction) {
+    const interactionClient = interaction.client as CustomClient;
 
-  if (!genre) {
-    return await interaction.editReply("no such genre found 🧐");
-  }
-  if (start_date && end_date && start_date > end_date) {
-    return await interaction.editReply(
-      "invalid range, `start-date` shouldn't be greater than `end-date`"
+    const focusedValue = interaction.options.getFocused();
+    const choices = interactionClient.initialFetchedData?.genreList ?? [];
+
+    const fuse = new Fuse(choices, {
+      keys: ["name"],
+      threshold: 0.4,
+    });
+
+    const filtered = focusedValue
+      ? fuse.search(focusedValue).map(({ item }) => item)
+      : choices;
+
+    await interaction.respond(
+      filtered
+        .map((choice) => ({
+          name: choice.name + ` (Total anime: ~${choice.count})`,
+          value: String(choice.mal_id),
+        }))
+        .slice(0, 25)
     );
-  }
+  },
+  async execute(interaction) {
+    await interaction.deferReply();
+    const genre = getRelatedGenre(interaction);
+    const start_date =
+      interaction.options.getInteger("start-date") ?? undefined;
+    const end_date = interaction.options.getInteger("end-date") ?? undefined;
 
-  const perPage = 10;
+    if (!genre) {
+      return await interaction.editReply("no such genre found 🧐");
+    }
+    if (start_date && end_date && start_date > end_date) {
+      return await interaction.editReply(
+        `*(${start_date} - ${end_date})*: ` +
+          "invalid range, how can `start-date` be greater than `end-date` :person_shrugging:"
+      );
+    }
 
-  const data = await getAnime({
-    genres: String(genre.mal_id),
-    limit: perPage,
-    start_date,
-    end_date,
-  });
+    const totalAnimeCount = await getTotalAnimeCount({
+      relatedGenre: genre,
+      start_date,
+      end_date,
+    });
 
-  if (isJikanError(data)) {
-    return await interaction.editReply(
-      "there was an error ``` " + data + " ```"
-    );
-  }
+    if (!totalAnimeCount) {
+      return await interaction.editReply(
+        "not enough anime, please try a different combination of `genre`, `start-date` and `end-date`"
+      );
+    }
+
+    // random page number
+    const perPage = 10;
+    const totalPageCount = Math.round(totalAnimeCount / perPage);
+    const randomPage = getRandomNum(1, totalPageCount);
+
+    const data = await getAnime({
+      genres: String(genre.mal_id),
+      limit: perPage,
+      start_date,
+      end_date,
+      page: randomPage,
+    });
+
+    if (isJikanError(data)) {
+      console.log({ data });
+      return await interaction.editReply(
+        "there was an error ``` " + data + " ```"
+      );
+    }
+
+    const approvedAnime = data.data.filter((anime) => anime.approved);
+
+    if (approvedAnime.length < 1) {
+      return interaction.editReply(
+        "try again, most anime i ran into were unapproved"
+      );
+    }
+
+    // random number based on approved anime on current page
+    const randomAnimeIndex = getRandomNum(0, approvedAnime.length - 1);
+    const randomAnime = approvedAnime[randomAnimeIndex];
+
+    console.log({ totalAnimeCount, randomPage, randomAnimeIndex });
+
+    // prepare and send embed
+    const timeRange =
+      start_date || end_date
+        ? ` **(${start_date || "??"} - ${end_date || "??"})**`
+        : "";
+    await interaction.followUp({
+      content: `
+Random **${genre.name}** anime${timeRange}:
+
+***Synopsis*** (*${randomAnime.title}*)
+${"```" + randomAnime.synopsis + "```"}
+\u200b
+`,
+      embeds: getEmbedsFromAnime(randomAnime),
+    });
+  },
 };
