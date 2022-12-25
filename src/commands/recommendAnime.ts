@@ -279,6 +279,34 @@ export function getRelatedGenre(
   return relatedGenre;
 }
 
+export async function getTotalAnimeCount({
+  relatedGenre,
+  end_date,
+  start_date,
+}: {
+  relatedGenre: Genre;
+  start_date?: number;
+  end_date?: number;
+}) {
+  let totalCount: number | null = null;
+  if (!start_date && !end_date) {
+    totalCount = relatedGenre.count;
+  } else {
+    try {
+      const res = await getAnime({ genres: String(relatedGenre.mal_id) });
+      if (!isJikanError(res)) {
+        totalCount = res.pagination.items.count;
+      } else {
+        // handle api fail
+      }
+    } catch {
+      // handle api fail
+    }
+  }
+
+  return totalCount;
+}
+
 export const executeV2 = async (
   interaction: ChatInputCommandInteraction<CacheType>
 ) => {

@@ -1,8 +1,14 @@
 import { afterEach, describe, expect, jest, test } from "@jest/globals";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
 import { AnimeSearchResponse, Genre } from "src/types";
-import { executeV2, getRelatedGenre } from "../../commands/recommendAnime";
+import {
+  executeV2,
+  getRelatedGenre,
+  getTotalAnimeCount,
+} from "../../commands/recommendAnime";
 import { getAnime, GetAnimeQueryParams } from "../../helpers/getAnime";
+
+const mockTotalAnimeCount = 12;
 
 jest.mock("../../helpers/getAnime", () => {
   return {
@@ -14,7 +20,7 @@ jest.mock("../../helpers/getAnime", () => {
             has_next_page: false,
             current_page: 0,
             items: {
-              count: 0,
+              count: mockTotalAnimeCount,
               total: 0,
               per_page: 0,
             },
@@ -246,4 +252,39 @@ describe("getRelatedGenre", () => {
       url: "xyz4.com",
     });
   });
+});
+
+describe("getTotalAnimeCount", () => {
+  test("should just return `totalCount` from genre when `start_date` or `end_date` not present. And don't make call to jikan API", async () => {
+    const relatedGenre: Genre = {
+      count: 6,
+      mal_id: 2,
+      name: "dummy2",
+      url: "xyz2.com",
+    };
+
+    const totalAnimeCount = await getTotalAnimeCount({ relatedGenre });
+
+    expect(totalAnimeCount).toBe(6);
+    expect(getAnime).not.toBeCalled();
+  });
+
+  test("when `start_date` or `end_date` are present, make call to Jikan-API and return `totalCount` from there", async () => {
+    const relatedGenre: Genre = {
+      count: 6,
+      mal_id: 2,
+      name: "dummy2",
+      url: "xyz2.com",
+    };
+
+    const totalAnimeCount = await getTotalAnimeCount({
+      relatedGenre,
+      start_date: 2016,
+    });
+
+    expect(totalAnimeCount).toBe(mockTotalAnimeCount);
+    expect(getAnime).toBeCalled();
+  });
+
+  test.todo("handle situation when network req fails");
 });
