@@ -5,6 +5,8 @@ export type GetAnimeQueryParams = {
   genres?: string;
   page?: number;
   limit?: number;
+  start_date?: number;
+  end_date?: number;
 };
 
 export const getAnime = async (

@@ -42,9 +42,9 @@ test("can call undici's `request` with base url and 1 query param ", () => {
 });
 
 test("can call undici's `request` with base url and multiple query param ", () => {
-  getAnime({ limit: 10, page: 4, genres: "1234" });
+  getAnime({ limit: 10, page: 4, genres: "1234", start_date: 2018 });
 
   expect(request).toBeCalledWith(
-    "https://api.jikan.moe/v4/anime?limit=10&page=4&genres=1234"
+    "https://api.jikan.moe/v4/anime?limit=10&page=4&genres=1234&start_date=2018"
   );
 });

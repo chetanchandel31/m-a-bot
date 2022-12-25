@@ -79,9 +79,6 @@ describe("/recommend-anime genre startDate endDate", () => {
   // genre endDate
   // genre startDate? endDate
   // ├── genre sta?rtDate endDate (endDate  < startDate)
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
 
   test("it should initially show 'bot is thinking...', because we intend to make async operations and get back", async () => {
     const interaction = getMockInteraction();
