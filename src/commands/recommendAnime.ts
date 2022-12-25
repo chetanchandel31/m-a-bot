@@ -1,6 +1,8 @@
 import {
   APIEmbed,
   APIEmbedField,
+  CacheType,
+  ChatInputCommandInteraction,
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
@@ -14,9 +16,129 @@ import {
   SlashCommand,
 } from "src/types";
 import { request } from "undici";
+import { getAnime } from "../helpers/getAnime";
 
-const getRandomNum = (min: number, max: number) =>
+const getRandomNum = (min: number, max: number): number =>
   Math.floor(Math.random() * (max - min + 1)) + min;
+
+const getEmbedsFromAnime = (randomAnime: AnimeSearchResponse["data"][0]) => {
+  const fields: APIEmbedField[] = [
+    {
+      name: "Season",
+      value: randomAnime.season ?? "-",
+      inline: true,
+    },
+    {
+      name: "Titles",
+      value:
+        randomAnime.titles.map((title) => `${title.title}`).join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+    },
+    {
+      name: "Episodes",
+      value: String(randomAnime.episodes ?? "-"),
+      inline: true,
+    },
+    {
+      name: "Duration",
+      value: randomAnime.duration ?? "-",
+      inline: true,
+    },
+    {
+      name: "Aired",
+      value:
+        randomAnime.aired?.string + (randomAnime.airing ? " (on-going)" : ""),
+      inline: true,
+    },
+    {
+      name: "Type",
+      value: randomAnime.type ?? "-",
+      inline: true,
+    },
+    {
+      name: "Source",
+      value: randomAnime.source ?? "-",
+      inline: true,
+    },
+    {
+      name: "Studio",
+      value:
+        randomAnime.studios
+          .map((studio) => `${studio.name} (${studio.type})`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+    },
+    {
+      name: "Genre",
+      value:
+        randomAnime.genres
+          .concat(randomAnime.explicit_genres)
+          .map((genre) => `${genre.name}`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Theme",
+      value:
+        randomAnime.themes.map((theme) => `${theme.name}`).join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Demographics",
+      value:
+        randomAnime.demographics
+          .map((demographic) => `${demographic.name}`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Rating",
+      value: randomAnime.rating ?? "-",
+      inline: true,
+    },
+    {
+      name: "Score",
+      value: randomAnime.score
+        ? getFormattedScore(randomAnime.score, randomAnime.scored_by)
+        : "-",
+    },
+  ];
+  const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
+    {
+      color: 15418782,
+      author: {
+        name: `Rank #${randomAnime.rank ?? "-"} | Popularity #${
+          randomAnime.popularity ?? "-"
+        }`,
+      },
+      title: `${randomAnime.title ?? "-"}`,
+      image: {
+        url: randomAnime.images.jpg.large_image_url,
+      },
+      fields,
+      timestamp: new Date().toISOString(),
+      url: randomAnime.url,
+    },
+  ];
+
+  if (randomAnime.background) {
+    embeds.push({
+      color: 0xefff00,
+      title: `Background`,
+      description: randomAnime.background.slice(0, 4000),
+    });
+  }
+
+  return embeds;
+};
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -28,6 +150,22 @@ export const command: SlashCommand = {
         .setDescription("What genre anime should get recommended?")
         .setRequired(true)
         .setAutocomplete(true)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("start-date")
+        // TODO: check these desc
+        .setDescription("anime aired before this year won't get recommended")
+        .setMinValue(2000)
+        .setMaxValue(new Date().getFullYear() - 1)
+    )
+    .addIntegerOption((option) =>
+      option
+        .setName("end-date")
+        // TODO: check these desc
+        .setDescription("anime aired after this year won't get recommended")
+        .setMinValue(2000)
+        .setMaxValue(new Date().getFullYear() - 1)
     ),
   async autocomplete(interaction) {
     const interactionClient = interaction.client as CustomClient;
@@ -47,7 +185,7 @@ export const command: SlashCommand = {
     await interaction.respond(
       filtered
         .map((choice) => ({
-          name: choice.name + ` (${choice.count})`,
+          name: choice.name + ` (Total anime: ~ ${choice.count})`,
           value: String(choice.mal_id),
         }))
         .slice(0, 25)
@@ -59,12 +197,16 @@ export const command: SlashCommand = {
     const interactionClient = interaction.client as CustomClient;
 
     const genreId = interaction.options.getString("genre") as string;
+    const year = interaction.options.getInteger("year");
+
     const relatedGenre = interactionClient.initialFetchedData?.genreList.find(
       (genre) => String(genre.mal_id) === genreId
     );
 
     if (!relatedGenre) {
-      return await interaction.editReply("no such genre found");
+      return await interaction.editReply(
+        "invalid genre, make sure you select one of the suggested options"
+      );
     }
 
     // random page-number based on `relatedGenre.count`
@@ -95,120 +237,6 @@ export const command: SlashCommand = {
     const randomAnime = approvedAnime[randomAnimeIndex];
 
     // prepare and send embed
-    const fields: APIEmbedField[] = [
-      {
-        name: "Season",
-        value: randomAnime.season ?? "-",
-        inline: true,
-      },
-      {
-        name: "Titles",
-        value:
-          randomAnime.titles.map((title) => `${title.title}`).join(", ") || "-",
-        inline: true,
-      },
-      {
-        name: "\u200b",
-        value: "\u200b",
-      },
-      {
-        name: "Episodes",
-        value: String(randomAnime.episodes ?? "-"),
-        inline: true,
-      },
-      {
-        name: "Duration",
-        value: randomAnime.duration ?? "-",
-        inline: true,
-      },
-      {
-        name: "Aired",
-        value:
-          randomAnime.aired?.string + (randomAnime.airing ? " (on-going)" : ""),
-        inline: true,
-      },
-      {
-        name: "Type",
-        value: randomAnime.type ?? "-",
-        inline: true,
-      },
-      {
-        name: "Source",
-        value: randomAnime.source ?? "-",
-        inline: true,
-      },
-      {
-        name: "Studio",
-        value:
-          randomAnime.studios
-            .map((studio) => `${studio.name} (${studio.type})`)
-            .join(", ") || "-",
-        inline: true,
-      },
-      {
-        name: "\u200b",
-        value: "\u200b",
-      },
-      {
-        name: "Genre",
-        value:
-          randomAnime.genres
-            .concat(randomAnime.explicit_genres)
-            .map((genre) => `${genre.name}`)
-            .join(", ") || "-",
-        inline: true,
-      },
-      {
-        name: "Theme",
-        value:
-          randomAnime.themes.map((theme) => `${theme.name}`).join(", ") || "-",
-        inline: true,
-      },
-      {
-        name: "Demographics",
-        value:
-          randomAnime.demographics
-            .map((demographic) => `${demographic.name}`)
-            .join(", ") || "-",
-        inline: true,
-      },
-      {
-        name: "Rating",
-        value: randomAnime.rating ?? "-",
-        inline: true,
-      },
-      {
-        name: "Score",
-        value: randomAnime.score
-          ? getFormattedScore(randomAnime.score, randomAnime.scored_by)
-          : "-",
-      },
-    ];
-    const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
-      {
-        color: 15418782,
-        author: {
-          name: `Rank #${randomAnime.rank ?? "-"} | Popularity #${
-            randomAnime.popularity ?? "-"
-          }`,
-        },
-        title: `${randomAnime.title ?? "-"}`,
-        image: {
-          url: randomAnime.images.jpg.large_image_url,
-        },
-        fields,
-        timestamp: new Date().toISOString(),
-        url: randomAnime.url,
-      },
-    ];
-
-    if (randomAnime.background) {
-      embeds.push({
-        color: 0xefff00,
-        title: `Background`,
-        description: randomAnime.background.slice(0, 4000),
-      });
-    }
 
     await interaction.followUp({
       content: `
@@ -218,7 +246,35 @@ Random **${relatedGenre.name}** anime:
 ${"```" + randomAnime.synopsis + "```"}
 \u200b
 `,
-      embeds,
+      embeds: getEmbedsFromAnime(randomAnime),
     });
   },
+};
+
+function getRelatedGenre(interaction: ChatInputCommandInteraction<CacheType>) {
+  const genre = interaction.options.getString("genre") as string;
+  const interactionClient = interaction.client as CustomClient;
+
+  // try to find genre using both id and name
+  const fuse = new Fuse(interactionClient.initialFetchedData?.genreList ?? [], {
+    keys: ["name"],
+    threshold: 0.4,
+  });
+}
+
+export const executeV2 = async (
+  interaction: ChatInputCommandInteraction<CacheType>
+) => {
+  await interaction.deferReply();
+  const genre = interaction.options.getString("genre") as string;
+
+  const perPage = 10;
+
+  const data = await getAnime({ genres: genre, limit: perPage });
+
+  if (isJikanError(data)) {
+    return await interaction.editReply(
+      "there was an error ``` " + data + " ```"
+    );
+  }
 };

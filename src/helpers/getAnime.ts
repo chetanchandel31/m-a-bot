@@ -1,14 +1,14 @@
 import { AnimeSearchResponse, JikanErrorResponse } from "src/types";
 import { request } from "undici";
 
-type QueryParams = {
+export type GetAnimeQueryParams = {
   genres?: string;
   page?: number;
   limit?: number;
 };
 
 export const getAnime = async (
-  queryParams?: QueryParams
+  queryParams?: GetAnimeQueryParams
 ): Promise<AnimeSearchResponse | JikanErrorResponse> => {
   let baseUrl = "https://api.jikan.moe/v4/anime";
 
