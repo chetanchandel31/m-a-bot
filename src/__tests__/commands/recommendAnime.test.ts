@@ -125,7 +125,7 @@ describe("/recommend-anime genre startDate endDate", () => {
   });
 
   test(`upon receiving invalid genre
-  1. don't call ?jikan-API
+  1. don't call jikan-API
   2. send some error message
   `, async () => {
     const interaction = getMockInteraction({
@@ -140,11 +140,69 @@ describe("/recommend-anime genre startDate endDate", () => {
     expect(interaction.editReply).toBeCalledWith("no such genre found 🧐");
   });
 
-  test.todo("should be able to call jikan-API with `start-date`");
+  test("should be able to call jikan-API with `start-date`", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2016,
+      endDate: null,
+    });
 
-  test.todo("should be able to call jikan-API with `end-date`");
+    await executeV2(interaction);
 
-  test.todo("should send error message when `end-date` < `start-date`");
+    expect(getAnime).toBeCalledWith({
+      genres: "1",
+      limit: 10,
+      start_date: 2016,
+    });
+  });
+
+  test("should be able to call jikan-API with `end-date`", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: null,
+      endDate: 2020,
+    });
+
+    await executeV2(interaction);
+
+    expect(getAnime).toBeCalledWith({
+      genres: "1",
+      limit: 10,
+      end_date: 2020,
+    });
+  });
+
+  test("should be able to call jikan-API with `start-date` & `end-date`", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2016,
+      endDate: 2020,
+    });
+
+    await executeV2(interaction);
+
+    expect(getAnime).toBeCalledWith({
+      genres: "1",
+      limit: 10,
+      start_date: 2016,
+      end_date: 2020,
+    });
+  });
+
+  test("should send error message when `end-date` < `start-date` and should NOT even call jikan-API", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2020,
+      endDate: 2018,
+    });
+
+    await executeV2(interaction);
+
+    expect(getAnime).not.toBeCalled();
+    expect(interaction.editReply).toBeCalledWith(
+      "invalid range, `start-date` shouldn't be greater than `end-date`"
+    );
+  });
 
   test.todo("should handle situation when total count is too low");
 

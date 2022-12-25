@@ -284,14 +284,26 @@ export const executeV2 = async (
 ) => {
   await interaction.deferReply();
   const genre = getRelatedGenre(interaction);
+  const start_date = interaction.options.getInteger("start-date") ?? undefined;
+  const end_date = interaction.options.getInteger("end-date") ?? undefined;
 
   if (!genre) {
     return await interaction.editReply("no such genre found 🧐");
   }
+  if (start_date && end_date && start_date > end_date) {
+    return await interaction.editReply(
+      "invalid range, `start-date` shouldn't be greater than `end-date`"
+    );
+  }
 
   const perPage = 10;
 
-  const data = await getAnime({ genres: String(genre.mal_id), limit: perPage });
+  const data = await getAnime({
+    genres: String(genre.mal_id),
+    limit: perPage,
+    start_date,
+    end_date,
+  });
 
   if (isJikanError(data)) {
     return await interaction.editReply(
