@@ -212,14 +212,14 @@ export const command: SlashCommand = {
     )
     .addIntegerOption((option) =>
       option
-        .setName("start-date")
+        .setName("start-year")
         .setDescription("anime aired before this year won't get recommended")
         .setMinValue(1950)
         .setMaxValue(new Date().getFullYear() + 1)
     )
     .addIntegerOption((option) =>
       option
-        .setName("end-date")
+        .setName("end-year")
         .setDescription("anime aired after this year won't get recommended")
         .setMinValue(1950)
         .setMaxValue(new Date().getFullYear() + 1)
@@ -252,16 +252,18 @@ export const command: SlashCommand = {
     await interaction.deferReply();
     const genre = getRelatedGenre(interaction);
     const start_date =
-      interaction.options.getInteger("start-date") ?? undefined;
-    const end_date = interaction.options.getInteger("end-date") ?? undefined;
+      interaction.options.getInteger("start-year") ?? undefined;
+    const end_date = interaction.options.getInteger("end-year") ?? undefined;
 
     if (!genre) {
-      return await interaction.editReply("no such genre found 🧐");
+      return await interaction.editReply(
+        `${interaction.options.getString("genre")}: no such genre found 🧐`
+      );
     }
     if (start_date && end_date && start_date > end_date) {
       return await interaction.editReply(
         `*(${start_date} - ${end_date})*: ` +
-          "invalid range, how can `start-date` be greater than `end-date` :person_shrugging:"
+          "invalid range, how can `start-year` be greater than `end-year` :person_shrugging:"
       );
     }
 
@@ -277,7 +279,7 @@ export const command: SlashCommand = {
           end_date || "??"
         })\`*
         
-maybe try a different combination of \`genre\`, \`start-date\` and \`end-date\`?`
+maybe try a different combination of \`genre\`, \`start-year\` and \`end-year\`?`
       );
     }
 

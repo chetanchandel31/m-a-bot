@@ -65,8 +65,8 @@ function getMockInteraction(
         if (name === "genre") return commandOptions.genre;
       }),
       getInteger: jest.fn((name: string) => {
-        if (name === "start-date") return commandOptions.startDate;
-        if (name === "end-date") return commandOptions.endDate;
+        if (name === "start-year") return commandOptions.startDate;
+        if (name === "end-year") return commandOptions.endDate;
       }),
     },
     deferReply: jest.fn(),
@@ -142,7 +142,9 @@ describe("/recommend-anime genre startDate endDate", () => {
     await command.execute(interaction);
 
     expect(getAnime).not.toBeCalled();
-    expect(interaction.editReply).toBeCalledWith("no such genre found 🧐");
+    expect((interaction.editReply as jest.Mock).mock.calls[0][0]).toContain(
+      "no such genre found 🧐"
+    );
   });
 
   test("should be able to call jikan-API with `start-date`", async () => {
@@ -201,8 +203,8 @@ describe("/recommend-anime genre startDate endDate", () => {
     await command.execute(interaction);
 
     expect(getAnime).not.toBeCalled();
-    expect(interaction.editReply).toBeCalledWith(
-      "*(2020 - 2018)*: invalid range, how can `start-date` be greater than `end-date` :person_shrugging:"
+    expect((interaction.editReply as jest.Mock).mock.calls[0][0]).toContain(
+      "invalid range"
     );
   });
 
