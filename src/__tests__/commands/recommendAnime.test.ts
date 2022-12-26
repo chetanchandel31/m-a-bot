@@ -208,6 +208,21 @@ describe("/recommend-anime genre startDate endDate", () => {
     );
   });
 
+  test("should send error message when `end-date` = `start-date` and should NOT even call jikan-API", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2021,
+      endDate: 2021,
+    });
+
+    await command.execute(interaction);
+
+    expect(getAnime).not.toBeCalled();
+    expect((interaction.editReply as jest.Mock).mock.calls[0][0]).toContain(
+      "invalid range"
+    );
+  });
+
   test("should handle situation when total count is too low", async () => {
     const interaction = getMockInteraction({
       genre: "1",

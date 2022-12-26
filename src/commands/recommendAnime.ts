@@ -266,6 +266,12 @@ export const command: SlashCommand = {
           "invalid range, how can `start-year` be greater than `end-year` :person_shrugging:"
       );
     }
+    if (start_date && end_date && start_date === end_date) {
+      return await interaction.editReply(
+        `*(${start_date} - ${end_date})*: ` +
+          "invalid range, keep atleast 1 year gap between `start-year` and `end-year`"
+      );
+    }
 
     const totalAnimeCount = await getTotalAnimeCount({
       relatedGenre: genre,
