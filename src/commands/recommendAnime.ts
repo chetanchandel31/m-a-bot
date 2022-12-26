@@ -209,6 +209,7 @@ export const command: SlashCommand = {
         .setDescription("What genre anime should get recommended?")
         .setRequired(true)
         .setAutocomplete(true)
+        .setMaxLength(70)
     )
     .addIntegerOption((option) =>
       option
@@ -257,7 +258,7 @@ export const command: SlashCommand = {
 
     if (!genre) {
       return await interaction.editReply(
-        `${interaction.options.getString("genre")}: no such genre found 🧐`
+        `\`${interaction.options.getString("genre")}\`: no such genre found 🧐`
       );
     }
     if (start_date && end_date && start_date > end_date) {
