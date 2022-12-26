@@ -180,7 +180,12 @@ export async function getTotalAnimeCount({
     totalCount = relatedGenre.count;
   } else {
     try {
-      const res = await getAnime({ genres: String(relatedGenre.mal_id) });
+      const res = await getAnime({
+        genres: String(relatedGenre.mal_id),
+        start_date,
+        end_date,
+        limit: 1,
+      });
       if (!isJikanError(res)) {
         totalCount = res.pagination.items.total;
       } else {
@@ -268,7 +273,11 @@ export const command: SlashCommand = {
 
     if (!totalAnimeCount) {
       return await interaction.editReply(
-        "not enough anime, please try a different combination of `genre`, `start-date` and `end-date`"
+        `not enough anime for *\`${genre.name} (${start_date || "??"} - ${
+          end_date || "??"
+        })\`*
+        
+maybe try a different combination of \`genre\`, \`start-date\` and \`end-date\`?`
       );
     }
 
@@ -288,15 +297,20 @@ export const command: SlashCommand = {
     if (isJikanError(data)) {
       console.log({ data });
       return await interaction.editReply(
-        "there was an error ``` " + data + " ```"
+        "there was an error from Jikan while running " +
+          `**${genre.name} (${start_date || "??"} - ${end_date || "??"})**`
       );
     }
 
     const approvedAnime = data.data.filter((anime) => anime.approved);
 
     if (approvedAnime.length < 1) {
+      console.log({ totalAnimeCount, randomPage });
       return interaction.editReply(
-        "try again, most anime i ran into were unapproved"
+        `try again, most anime i ran into were unapproved
+        
+        ${genre.name} (${start_date} - ${end_date})
+        `
       );
     }
 
@@ -309,12 +323,12 @@ export const command: SlashCommand = {
     // prepare and send embed
     const timeRange =
       start_date || end_date
-        ? ` **(${start_date || "??"} - ${end_date || "??"})**`
+        ? `**(${start_date || "??"} - ${end_date || "??"})** \n`
         : "";
     await interaction.followUp({
       content: `
-Random **${genre.name}** anime${timeRange}:
-
+Random **${genre.name}** anime out of total **\`${totalAnimeCount}\`** anime:
+${timeRange}
 ***Synopsis*** (*${randomAnime.title}*)
 ${"```" + randomAnime.synopsis + "```"}
 \u200b

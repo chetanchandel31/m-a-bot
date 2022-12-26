@@ -265,7 +265,7 @@ describe("getTotalAnimeCount", () => {
     expect(getAnime).not.toBeCalled();
   });
 
-  test("when `start_date` or `end_date` are present, make call to Jikan-API and return `totalCount` from there", async () => {
+  test("when `start_date` or `end_date` are present, pass them to  call to Jikan-API and return `totalCount` from API result.", async () => {
     const relatedGenre: Genre = {
       count: 6,
       mal_id: 2,
@@ -279,7 +279,11 @@ describe("getTotalAnimeCount", () => {
     });
 
     expect(totalAnimeCount).toBe(mockTotalAnimeCount);
-    expect(getAnime).toBeCalled();
+    expect(getAnime).toBeCalledWith({
+      genres: "2",
+      limit: 1,
+      start_date: 2016,
+    });
   });
 
   test.todo("handle situation when network req fails");
