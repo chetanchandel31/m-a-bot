@@ -206,7 +206,33 @@ describe("/recommend-anime genre startDate endDate", () => {
     );
   });
 
-  test.todo("should handle situation when total count is too low");
+  test("should handle situation when total count is too low", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2017,
+      endDate: 2018,
+    });
+
+    (getAnime as jest.MockedFunction<typeof getAnime>).mockResolvedValueOnce({
+      pagination: {
+        last_visible_page: 0,
+        has_next_page: false,
+        current_page: 0,
+        items: {
+          count: 0,
+          total: 0,
+          per_page: 0,
+        },
+      },
+      data: [],
+    });
+
+    await command.execute(interaction);
+
+    expect((interaction.editReply as jest.Mock).mock.calls[0][0]).toContain(
+      "not enough anime"
+    );
+  });
 
   test.todo("should handle situation when jikan api req fails");
   // const spy =jest
