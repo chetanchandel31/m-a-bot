@@ -1,4 +1,5 @@
 import { CacheType, Interaction } from "discord.js";
+import { fetchAndListAnimePage } from "../commands/searchAnime";
 import { CustomClient } from "src/types";
 
 export default async function onInteractionCreate(
@@ -44,6 +45,16 @@ export default async function onInteractionCreate(
       await command.autocomplete(interaction);
     } catch (error) {
       console.error(error);
+    }
+  } else if (interaction.isButton()) {
+    if (interaction.customId.startsWith("search-anime")) {
+      const animeName = interaction.customId.slice(13);
+      const page =
+        Number(interaction.message.content.slice(6).split("/")[0]) + 1;
+
+      // if one of `interaction.update` or `inteaction.reply` is used, interaction is considered complete and the other cannot be used
+
+      await fetchAndListAnimePage({ animeName, interaction, page });
     }
   }
 }
