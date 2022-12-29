@@ -1,6 +1,7 @@
 import { CacheType, Interaction } from "discord.js";
 import { CustomClient } from "src/types";
 import { fetchAndListAnimePage } from "../commands/searchAnime";
+import { fetchAndListCharacterPage } from "../commands/searchCharacter";
 import { fetchAndListMangaPage } from "../commands/searchManga";
 
 export default async function onInteractionCreate(
@@ -61,9 +62,13 @@ export default async function onInteractionCreate(
       const page =
         Number(interaction.message.content.slice(6).split("/")[0]) + 1;
 
-      // if one of `interaction.update` or `inteaction.reply` is used, interaction is considered complete and the other cannot be used
-
       await fetchAndListMangaPage({ mangaName, interaction, page });
+    } else if (interaction.customId.startsWith("search-char")) {
+      const characterName = interaction.customId.slice(12);
+      const page =
+        Number(interaction.message.content.slice(6).split("/")[0]) + 1;
+
+      await fetchAndListCharacterPage({ characterName, interaction, page });
     }
   }
 }
