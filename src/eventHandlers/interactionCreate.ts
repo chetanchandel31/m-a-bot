@@ -1,6 +1,7 @@
 import { CacheType, Interaction } from "discord.js";
-import { fetchAndListAnimePage } from "../commands/searchAnime";
 import { CustomClient } from "src/types";
+import { fetchAndListAnimePage } from "../commands/searchAnime";
+import { fetchAndListMangaPage } from "../commands/searchManga";
 
 export default async function onInteractionCreate(
   interaction: Interaction<CacheType>
@@ -55,6 +56,14 @@ export default async function onInteractionCreate(
       // if one of `interaction.update` or `inteaction.reply` is used, interaction is considered complete and the other cannot be used
 
       await fetchAndListAnimePage({ animeName, interaction, page });
+    } else if (interaction.customId.startsWith("search-manga")) {
+      const mangaName = interaction.customId.slice(13);
+      const page =
+        Number(interaction.message.content.slice(6).split("/")[0]) + 1;
+
+      // if one of `interaction.update` or `inteaction.reply` is used, interaction is considered complete and the other cannot be used
+
+      await fetchAndListMangaPage({ mangaName, interaction, page });
     }
   }
 }

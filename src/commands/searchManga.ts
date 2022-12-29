@@ -1,9 +1,18 @@
 import {
+  ActionRowBuilder,
   APIEmbed,
   APIEmbedField,
+  BaseMessageOptions,
+  ButtonBuilder,
+  ButtonInteraction,
+  ButtonStyle,
+  CacheType,
+  ChatInputCommandInteraction,
   JSONEncodable,
   SlashCommandBuilder,
 } from "discord.js";
+import { getFormattedScore } from "../helpers/getFormattedScore";
+import { isJikanError } from "../helpers/isJikanError";
 import { JikanErrorResponse, SlashCommand } from "src/types";
 import { request } from "undici";
 
@@ -94,17 +103,215 @@ interface Items {
   per_page: number;
 }
 
-const isJikanError = (data: unknown): data is JikanErrorResponse =>
-  !!data && typeof data === "object" && "error" in data;
+async function fetchMangasByName({
+  mangaName,
+  page,
+}: {
+  mangaName: string;
+  page: number;
+}): Promise<MangaSearchResponse | JikanErrorResponse> {
+  const requestUrl = `https://api.jikan.moe/v4/manga?letter=${encodeURIComponent(
+    mangaName
+  )}&limit=10&order_by=popularity&page=${page}`;
 
-const getFormattedScore = (score: number, scored_by: number) =>
-  "⭐".repeat(Math.round(score)) +
-  "⚫".repeat(10 - Math.round(score)) +
-  +" " +
-  score +
-  "/10" +
-  "\n" +
-  `(scored by ${scored_by} users)`;
+  let data: MangaSearchResponse | JikanErrorResponse;
+
+  try {
+    const result = await request(requestUrl);
+    data = await result.body.json();
+  } catch (error) {
+    console.log("fetchMangaByName", { error });
+
+    data = {
+      status: 0,
+      type: "",
+      message: "couldn't make request to " + requestUrl,
+      error: "",
+      report_url: "",
+    };
+  }
+
+  return data;
+}
+
+function getEmbedsFromManga(manga: MangaSearchResponse["data"][0]) {
+  const fields: APIEmbedField[] = [
+    {
+      name: "Titles",
+      value: manga.titles.map((title) => `${title.title}`).join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+    },
+    {
+      name: "Chapters",
+      value: String(manga.chapters ?? "-"),
+      inline: true,
+    },
+    {
+      name: "Volumes",
+      value: String(manga.volumes ?? "-"),
+      inline: true,
+    },
+    {
+      name: "Aired",
+      value: manga.published.string + (manga.publishing ? " (on-going)" : ""),
+      inline: true,
+    },
+    {
+      name: "Type",
+      value: manga.type ?? "-",
+      inline: true,
+    },
+    {
+      name: "Author(s)",
+      value:
+        manga.authors
+          .map((author) => `${author.name} (${author.type})`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "\u200b",
+      value: "\u200b",
+    },
+    {
+      name: "Genre",
+      value:
+        manga.genres
+          .concat(manga.explicit_genres)
+          .map((genre) => `${genre.name}`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Theme",
+      value: manga.themes.map((theme) => `${theme.name}`).join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Demographics",
+      value:
+        manga.demographics
+          .map((demographic) => `${demographic.name}`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Serialisations",
+      value:
+        manga.serializations
+          .map((serialization) => `${serialization.name}`)
+          .join(", ") || "-",
+      inline: true,
+    },
+    {
+      name: "Score",
+      value: manga.score
+        ? getFormattedScore(manga.score, manga.scored_by)
+        : "-",
+    },
+  ];
+
+  const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
+    {
+      color: 0x57f287,
+      author: {
+        name: `Rank #${manga.rank} | Popularity #${manga.popularity}`,
+      },
+      title: `${manga.title}`,
+      image: {
+        url: manga.images.jpg.large_image_url,
+      },
+      fields,
+      timestamp: new Date().toISOString(),
+      url: manga.url,
+    },
+  ];
+
+  if (manga.background) {
+    embeds.push({
+      color: 0xefff00,
+      title: `Background`,
+      description: manga.background.slice(0, 4000),
+    });
+  }
+
+  return embeds;
+}
+
+export async function fetchAndListMangaPage({
+  mangaName,
+  interaction,
+  page,
+}: {
+  interaction:
+    | ChatInputCommandInteraction<CacheType>
+    | ButtonInteraction<CacheType>;
+  mangaName: string;
+  page: number;
+}) {
+  await interaction.deferReply();
+
+  const data: MangaSearchResponse | JikanErrorResponse =
+    await fetchMangasByName({ mangaName, page });
+
+  if (isJikanError(data)) {
+    return await interaction.editReply(
+      "there was an error ``` " + data + " ```"
+    );
+  }
+
+  const approvedMangas = data.data.filter((manga) => manga.approved);
+  const totalResultsCount = approvedMangas.length;
+
+  await interaction.editReply({
+    content: `${totalResultsCount} results for ${"`" + mangaName + "`"}`,
+  });
+
+  approvedMangas.reverse().forEach(async (manga, i) => {
+    const row = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setLabel("Visit MAL")
+        .setStyle(ButtonStyle.Link)
+        .setURL(manga.url)
+    );
+
+    await interaction.followUp({
+      content: `**${totalResultsCount - i}** of **${totalResultsCount}**
+***Synopsis*** (*${manga.title}*)
+${
+  "```" +
+  (manga.synopsis ? manga.synopsis.slice(0, 1800) : "nothing found") +
+  "```"
+}
+\u200b
+`,
+      embeds: getEmbedsFromManga(manga),
+      components: [row],
+    });
+  });
+
+  const rows: BaseMessageOptions["components"] = [];
+
+  if (data.pagination.has_next_page) {
+    rows.push(
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setLabel("Next page")
+          .setStyle(ButtonStyle.Primary)
+          .setCustomId(`search-manga ${mangaName}`)
+      )
+    );
+  }
+
+  await interaction.followUp({
+    content: `Page: ${data.pagination.current_page}/${data.pagination.last_visible_page}`,
+    components: rows,
+  });
+}
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -117,145 +324,8 @@ export const command: SlashCommand = {
         .setRequired(true)
     ),
   async execute(interaction) {
-    await interaction.deferReply();
     const mangaName = interaction.options.getString("manga-name") as string; // it is "required" option so will always be there
 
-    const result = await request(
-      `https://api.jikan.moe/v4/manga?letter=${encodeURIComponent(
-        mangaName
-      )}&limit=10&order_by=popularity`
-    );
-    const data: MangaSearchResponse | JikanErrorResponse =
-      await result.body.json();
-
-    if (isJikanError(data)) {
-      return await interaction.editReply(
-        "there was an error ``` " + data + " ```"
-      );
-    }
-
-    const approvedMangas = data.data.filter((manga) => manga.approved);
-    const totalResultsCount = approvedMangas.length;
-
-    await interaction.editReply({
-      content: `${totalResultsCount} results for ${"`" + mangaName + "`"}`,
-    });
-
-    approvedMangas.reverse().forEach(async (manga, i) => {
-      const fields: APIEmbedField[] = [
-        {
-          name: "Titles",
-          value:
-            manga.titles.map((title) => `${title.title}`).join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-        },
-        {
-          name: "Chapters",
-          value: String(manga.chapters ?? "-"),
-          inline: true,
-        },
-        {
-          name: "Volumes",
-          value: String(manga.volumes ?? "-"),
-          inline: true,
-        },
-        {
-          name: "Aired",
-          value:
-            manga.published.string + (manga.publishing ? " (on-going)" : ""),
-          inline: true,
-        },
-        {
-          name: "Type",
-          value: manga.type ?? "-",
-          inline: true,
-        },
-        {
-          name: "Studio",
-          value:
-            manga.authors
-              .map((author) => `${author.name} (${author.type})`)
-              .join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "\u200b",
-          value: "\u200b",
-        },
-        {
-          name: "Genre",
-          value:
-            manga.genres
-              .concat(manga.explicit_genres)
-              .map((genre) => `${genre.name}`)
-              .join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "Theme",
-          value: manga.themes.map((theme) => `${theme.name}`).join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "Demographics",
-          value:
-            manga.demographics
-              .map((demographic) => `${demographic.name}`)
-              .join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "Serialisations",
-          value:
-            manga.serializations
-              .map((serialization) => `${serialization.name}`)
-              .join(", ") || "-",
-          inline: true,
-        },
-        {
-          name: "Score",
-          value: manga.score
-            ? getFormattedScore(manga.score, manga.scored_by)
-            : "-",
-        },
-      ];
-
-      const embeds: (APIEmbed | JSONEncodable<APIEmbed>)[] = [
-        {
-          color: 0x57f287,
-          author: {
-            name: `Rank #${manga.rank} | Popularity #${manga.popularity}`,
-          },
-          title: `${manga.title}`,
-          image: {
-            url: manga.images.jpg.large_image_url,
-          },
-          fields,
-          timestamp: new Date().toISOString(),
-          url: manga.url,
-        },
-      ];
-
-      if (manga.background) {
-        embeds.push({
-          color: 0xefff00,
-          title: `Background`,
-          description: manga.background.slice(0, 4000),
-        });
-      }
-
-      await interaction.followUp({
-        content: `**${totalResultsCount - i}** of **${totalResultsCount}**
-***Synopsis*** (*${manga.title}*)
-  ${"```" + manga.synopsis + "```"}
-  \u200b
-  `,
-        embeds,
-      });
-    });
+    await fetchAndListMangaPage({ interaction, mangaName, page: 1 });
   },
 };
