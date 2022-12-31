@@ -13,6 +13,7 @@ import {
   AnimeSearchResponse,
   CustomClient,
   Genre,
+  JikanErrorResponse,
   SlashCommand,
 } from "src/types";
 import { getAnime } from "../helpers/getAnime";
@@ -175,24 +176,21 @@ export async function getTotalAnimeCount({
   start_date?: number;
   end_date?: number;
 }) {
-  let totalCount: number | null = null;
+  let totalCount: number | JikanErrorResponse;
+
   if (!start_date && !end_date) {
     totalCount = relatedGenre.count;
   } else {
-    try {
-      const res = await getAnime({
-        genres: String(relatedGenre.mal_id),
-        start_date,
-        end_date,
-        limit: 1,
-      });
-      if (!isJikanError(res)) {
-        totalCount = res.pagination.items.total;
-      } else {
-        // handle api fail
-      }
-    } catch {
-      // handle api fail
+    const res = await getAnime({
+      genres: String(relatedGenre.mal_id),
+      start_date,
+      end_date,
+      limit: 1,
+    });
+    if (!isJikanError(res)) {
+      totalCount = res.pagination.items.total;
+    } else {
+      totalCount = res;
     }
   }
 
@@ -256,6 +254,7 @@ export const command: SlashCommand = {
       interaction.options.getInteger("start-year") ?? undefined;
     const end_date = interaction.options.getInteger("end-year") ?? undefined;
 
+    // validate options
     if (!genre) {
       return await interaction.editReply(
         `\`${interaction.options.getString("genre")}\`: no such genre found 🧐`
@@ -274,13 +273,17 @@ export const command: SlashCommand = {
       );
     }
 
+    // handle total anime count
     const totalAnimeCount = await getTotalAnimeCount({
       relatedGenre: genre,
       start_date,
       end_date,
     });
 
-    if (!totalAnimeCount) {
+    if (isJikanError(totalAnimeCount)) {
+      return interaction.editReply(totalAnimeCount.error);
+    }
+    if (totalAnimeCount < 1) {
       return await interaction.editReply(
         `not enough anime for *\`${genre.name} (${start_date || "??"} - ${
           end_date || "??"
@@ -326,8 +329,6 @@ maybe try a different combination of \`genre\`, \`start-year\` and \`end-year\`?
     // random number based on approved anime on current page
     const randomAnimeIndex = getRandomNum(0, approvedAnime.length - 1);
     const randomAnime = approvedAnime[randomAnimeIndex];
-
-    console.log({ totalAnimeCount, randomPage, randomAnimeIndex });
 
     // prepare and send embed
     const timeRange =

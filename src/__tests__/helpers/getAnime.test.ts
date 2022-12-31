@@ -1,7 +1,8 @@
 import { expect, jest, test } from "@jest/globals";
-import { getAnime } from "../../helpers/getAnime";
-import { request } from "undici";
 import { AnimeSearchResponse } from "src/types";
+import { request } from "undici";
+import { getAnime } from "../../helpers/getAnime";
+import { isJikanError } from "../../helpers/isJikanError";
 
 function mockRequest() {
   const result: AnimeSearchResponse = {
@@ -53,4 +54,12 @@ test("can call undici's `request` with base url and multiple query param ", () =
   expect(request).toBeCalledWith(
     "https://api.jikan.moe/v4/anime?limit=10&page=4&genres=1234&start_date=2018"
   );
+});
+
+test("even if request throws an error, wrapper should handle it and return JikanError", async () => {
+  (request as jest.Mock).mockImplementationOnce(() => new Error("oops"));
+
+  const result = await getAnime({ limit: 10, start_date: undefined });
+
+  expect(isJikanError(result)).toBe(true);
 });

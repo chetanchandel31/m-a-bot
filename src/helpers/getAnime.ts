@@ -24,10 +24,22 @@ export const getAnime = async (
     baseUrl = baseUrl + "?" + stringifiedQueryParams.join("&");
   }
 
-  const result = await request(baseUrl);
+  let data: AnimeSearchResponse | JikanErrorResponse;
 
-  const data: AnimeSearchResponse | JikanErrorResponse =
-    await result.body.json();
+  try {
+    const result = await request(baseUrl);
+
+    data = await result.body.json();
+  } catch (error) {
+    console.log("getAnime", error);
+    data = {
+      status: 0,
+      type: "",
+      message: "something went wrong while making request to: " + baseUrl,
+      error: "something went wrong while making request to: " + baseUrl,
+      report_url: "",
+    };
+  }
 
   return data;
 };

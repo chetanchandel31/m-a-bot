@@ -7,6 +7,7 @@ import {
   getTotalAnimeCount,
 } from "../../commands/recommendAnime";
 import { getAnime, GetAnimeQueryParams } from "../../helpers/getAnime";
+import { isJikanError } from "../../helpers/isJikanError";
 
 const mockTotalAnimeCount = 4;
 
@@ -251,12 +252,28 @@ describe("/recommend-anime genre startDate endDate", () => {
     );
   });
 
-  test.todo("should handle situation when jikan api req fails");
-  // const spy =jest
-  // .spyOn(SoundPlayer, 'brand')
-  // .mockImplementation(() => 'some-mocked-brand')
+  test("in case of API error, should send error message and end execution", async () => {
+    const interaction = getMockInteraction({
+      genre: "1",
+      startDate: 2017,
+      endDate: 2018,
+    });
 
-  // spy.mockRestore()
+    (getAnime as jest.MockedFunction<typeof getAnime>).mockResolvedValueOnce({
+      status: 0,
+      type: "",
+      message: "something went wrong while making request to: ",
+      error: "custom error message",
+      report_url: "",
+    });
+
+    await command.execute(interaction);
+
+    expect((interaction.editReply as jest.Mock).mock.calls[0][0]).toBe(
+      "custom error message"
+    );
+    expect(interaction.editReply).toBeCalledTimes(1);
+  });
 });
 
 describe("getRelatedGenre", () => {
@@ -329,5 +346,27 @@ describe("getTotalAnimeCount", () => {
     });
   });
 
-  test.todo("handle situation when network req fails");
+  test("should return jikan error if network req fails", async () => {
+    (getAnime as jest.MockedFunction<typeof getAnime>).mockResolvedValueOnce({
+      status: 0,
+      type: "",
+      message: "something went wrong while making request to: ",
+      error: "custom error message",
+      report_url: "",
+    });
+
+    const relatedGenre: Genre = {
+      count: 6,
+      mal_id: 2,
+      name: "dummy2",
+      url: "xyz2.com",
+    };
+
+    const totalAnimeCount = await getTotalAnimeCount({
+      relatedGenre,
+      start_date: 2016,
+    });
+
+    expect(isJikanError(totalAnimeCount)).toBe(true);
+  });
 });
