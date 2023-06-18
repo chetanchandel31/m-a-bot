@@ -110,7 +110,7 @@ async function fetchMangasByName({
   mangaName: string;
   page: number;
 }): Promise<MangaSearchResponse | JikanErrorResponse> {
-  const requestUrl = `https://api.jikan.moe/v4/manga?letter=${encodeURIComponent(
+  const requestUrl = `https://api.jikan.moe/v4/manga?q=${encodeURIComponent(
     mangaName
   )}&limit=10&order_by=popularity&page=${page}`;
 

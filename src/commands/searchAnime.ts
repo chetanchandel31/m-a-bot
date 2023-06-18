@@ -27,7 +27,7 @@ async function fetchAnimeByName({
   animeName: string;
   page: number;
 }): Promise<AnimeSearchResponse | JikanErrorResponse> {
-  const requestUrl = `https://api.jikan.moe/v4/anime?letter=${encodeURIComponent(
+  const requestUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(
     animeName
   )}&limit=10&order_by=popularity&page=${page}`;
 

@@ -65,7 +65,7 @@ async function fetchCharacterByName({
   characterName: string;
   page: number;
 }): Promise<CharacterSearchResponse | JikanErrorResponse> {
-  const requestUrl = `https://api.jikan.moe/v4/characters?letter=${encodeURIComponent(
+  const requestUrl = `https://api.jikan.moe/v4/characters?q=${encodeURIComponent(
     characterName
   )}&limit=10&order_by=favorites&sort=desc&page=${page}`;
 
