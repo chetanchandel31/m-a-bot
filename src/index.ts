@@ -17,7 +17,7 @@ async function main(): Promise<void> {
   const heroListResult = await request(
     `https://mapi.mobilelegends.com/hero/list`
   );
-  const { data }: { data: HeroListItem[] } = await heroListResult.body.json();
+  const heroesList: { data: HeroListItem[] } = await heroListResult.body.json();
 
   const genreListResult = await request(
     `https://api.jikan.moe/v4/genres/anime`
@@ -30,7 +30,10 @@ async function main(): Promise<void> {
   });
 
   client.commands = new Collection();
-  client.initialFetchedData = { heroesList: data, genreList: genreList.data };
+  client.initialFetchedData = {
+    heroesList: heroesList.data,
+    genreList: genreList.data,
+  };
 
   // put all commands from `/commands` dir in `client.commands`
   const commandsPath = path.join(__dirname, "commands");
