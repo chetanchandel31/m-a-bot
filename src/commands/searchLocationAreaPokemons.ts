@@ -6,16 +6,18 @@ import {
 } from "discord.js";
 import Fuse from "fuse.js";
 import { SlashCommand } from "src/types";
-import { getPokemonLocationAreas } from "../helpers/getPokemonLocationAreas";
-import { pokemonNameToIdMap } from "../helpers/pokemonNameToIdMap";
+import { locationAreaNameToIdMap } from "../helpers/locationAreaNameToIdMap";
+import { getLocationAreaPokemons } from "../helpers/getLocationAreaPokemons";
 
-const commandOptionsNames = { POKEMON_NAME: "pokemon-name" } as const;
+const commandOptionsNames = {
+  LOCATION_AREA_NAME: "location-area-name",
+} as const;
 
 const handleAutocomplete = async (
   interaction: AutocompleteInteraction<CacheType>
 ) => {
   const focusedValue = interaction.options.getFocused();
-  const choices = Object.keys(pokemonNameToIdMap) ?? [];
+  const choices = Object.keys(locationAreaNameToIdMap) ?? [];
 
   const fuse = new Fuse(choices, {
     keys: ["name"],
@@ -29,7 +31,7 @@ const handleAutocomplete = async (
   await interaction.respond(
     filtered
       .map((choice) => ({
-        name: choice,
+        name: choice.replaceAll("-", " "),
         value: choice,
       }))
       .slice(0, 25)
@@ -40,15 +42,15 @@ const handleExecute = async (
   interaction: ChatInputCommandInteraction<CacheType>
 ) => {
   await interaction.deferReply();
-  const pokemonName = interaction.options.getString(
-    commandOptionsNames.POKEMON_NAME
+  const locationAreaName = interaction.options.getString(
+    commandOptionsNames.LOCATION_AREA_NAME
   ) as string;
 
-  if (!pokemonNameToIdMap[pokemonName]) {
-    return await interaction.editReply("No such pokemon found");
+  if (!locationAreaNameToIdMap[locationAreaName]) {
+    return await interaction.editReply("No such location area found");
   }
 
-  const result = await getPokemonLocationAreas({ pokemonName });
+  const result = await getLocationAreaPokemons({ locationAreaName });
 
   if (result.isError) {
     await interaction.editReply(`
@@ -59,15 +61,15 @@ ${JSON.stringify(result, null, 2)}
   } else {
     const versionToLocationAreaMap: {
       [version: string]: {
-        locationAreaName: string;
+        pokemonName: string;
         minLevel: number;
         maxLevel: number;
       }[];
     } = {};
 
-    result.data.forEach((locationArea) => {
-      locationArea.version_details.forEach((version) => {
-        const locationAreaName = locationArea.location_area.name;
+    result.data.pokemon_encounters.forEach((encounter) => {
+      encounter.version_details.forEach((version) => {
+        const pokemonName = encounter.pokemon.name;
         const minLevel = Math.min(
           ...version.encounter_details.map((encounter) => encounter.min_level)
         );
@@ -77,38 +79,32 @@ ${JSON.stringify(result, null, 2)}
 
         if (versionToLocationAreaMap[version.version.name]) {
           versionToLocationAreaMap[version.version.name].push({
-            locationAreaName,
+            pokemonName,
             maxLevel,
             minLevel,
           });
         } else {
           versionToLocationAreaMap[version.version.name] = [
-            { locationAreaName, maxLevel, minLevel },
+            { pokemonName, maxLevel, minLevel },
           ];
         }
       });
     });
 
-    let hasSentLocations = false;
+    let hasSentPokemons = false;
 
     for (const version of Object.keys(versionToLocationAreaMap)) {
       const versionDetails = versionToLocationAreaMap[version];
       const description = versionDetails
-        .map(
-          (locationArea) =>
-            `${locationArea.locationAreaName.replaceAll("-", " ")}`
-        )
+        .map((pokemon) => `${pokemon.pokemonName.replaceAll("-", " ")}`)
         .join("\n");
       const longDescription = versionDetails
-        .map((locationArea) => {
+        .map((pokemon) => {
           const lvlText =
-            locationArea.minLevel !== locationArea.maxLevel
-              ? `(lvl ${locationArea.minLevel}-${locationArea.maxLevel})`
-              : `(lvl ${locationArea.minLevel})`;
-          return `${locationArea.locationAreaName.replaceAll(
-            "-",
-            " "
-          )} ${lvlText}`;
+            pokemon.minLevel !== pokemon.maxLevel
+              ? `(lvl ${pokemon.minLevel}-${pokemon.maxLevel})`
+              : `(lvl ${pokemon.minLevel})`;
+          return `${pokemon.pokemonName.replaceAll("-", " ")} ${lvlText}`;
         })
         .join("\n");
 
@@ -117,14 +113,17 @@ ${JSON.stringify(result, null, 2)}
           content: "",
           embeds: [
             {
-              color: 0xed4245,
+              color: 0xefff00,
               title: `GAME: ${version}${
                 longDescription.length > 4000 ? " LIMIT EXCEEDED" : ``
               }`,
-              author: { name: `POKEMON: ${pokemonName}` },
-              image: {
-                url: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonNameToIdMap[pokemonName]}.png`,
+              author: {
+                name: `LOCATION AREA: ${result.data.location.name.replaceAll(
+                  "-",
+                  " "
+                )} -> ${locationAreaName.replaceAll("-", " ")}`,
               },
+
               timestamp: new Date().toISOString(),
               description: `${
                 description.length <= 2000
@@ -134,26 +133,24 @@ ${JSON.stringify(result, null, 2)}
             },
           ],
         });
-        hasSentLocations = true;
+        hasSentPokemons = true;
       }
     }
 
-    if (!hasSentLocations) {
-      await interaction.editReply(
-        `No locations found :smiling_face_with_tear:`
-      );
+    if (!hasSentPokemons) {
+      await interaction.editReply(`No pokemons found :smiling_face_with_tear:`);
     }
   }
 };
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
-    .setName("search-pokemon-location-areas")
-    .setDescription("Enter a pokemon and get related location areas")
+    .setName("search-location-area-pokemons")
+    .setDescription("Enter a location area and get related pokemons")
     .addStringOption((option) =>
       option
-        .setName(commandOptionsNames.POKEMON_NAME)
-        .setDescription("Name of the pokemon")
+        .setName(commandOptionsNames.LOCATION_AREA_NAME)
+        .setDescription("Name of the location area")
         .setRequired(true)
         .setAutocomplete(true)
         .setMaxLength(70)

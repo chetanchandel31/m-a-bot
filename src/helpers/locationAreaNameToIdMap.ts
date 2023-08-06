@@ -1,4 +1,5 @@
-export const locationAreaNameToIdMap = {
+// TODO: fetch these when bot starts
+export const locationAreaNameToIdMap: { [name: string]: string } = {
   "canalave-city-area": "1",
   "eterna-city-area": "2",
   "pastoria-city-area": "3",

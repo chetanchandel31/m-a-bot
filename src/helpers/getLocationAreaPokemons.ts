@@ -1,24 +1,24 @@
-import { ZodSchemaPokemonLocationAreaResponse } from "../zodSchemas/pokemonLocationAreasResponse";
 import { request } from "undici";
 import { z } from "zod";
+import { ZodSchemaLocationAreaPokemonsResponse } from "../zodSchemas/locationAreaPokemonsResponse";
 
 type Params = {
-  pokemonName: string;
+  locationAreaName: string;
 };
 
-export type InterfacePokemonLocationAreaResponse = z.infer<
-  typeof ZodSchemaPokemonLocationAreaResponse
+export type InterfaceLocationAreaPokemonsResponse = z.infer<
+  typeof ZodSchemaLocationAreaPokemonsResponse
 >;
 
 type Result =
   | { isError: true; title: string; details: Object }
   | {
       isError: false;
-      data: InterfacePokemonLocationAreaResponse;
+      data: InterfaceLocationAreaPokemonsResponse;
     };
 
-export const getPokemonLocationAreas = async ({ pokemonName }: Params) => {
-  let reqUrl = `https://pokeapi.co/api/v2/pokemon/${pokemonName}/encounters`;
+export const getLocationAreaPokemons = async ({ locationAreaName }: Params) => {
+  let reqUrl = `https://pokeapi.co/api/v2/location-area/${locationAreaName}/`;
 
   let result: Result = {
     isError: true,
@@ -30,7 +30,7 @@ export const getPokemonLocationAreas = async ({ pokemonName }: Params) => {
     const apiResponse = await request(reqUrl);
     const apiResponseBody = await apiResponse.body.json();
     const schemaValidationResult =
-      ZodSchemaPokemonLocationAreaResponse.safeParse(apiResponseBody);
+      ZodSchemaLocationAreaPokemonsResponse.safeParse(apiResponseBody);
 
     if (schemaValidationResult.success) {
       result = {
