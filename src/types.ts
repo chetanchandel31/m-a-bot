@@ -6,7 +6,15 @@ import {
   AutocompleteInteraction,
   Client,
   ChatInputCommandInteraction,
+  APIEmbed,
+  JSONEncodable,
 } from "discord.js";
+
+export type TypeResult<T> =
+  | { isSuccess: true; result: T }
+  | { isSuccess: false; errorMessage: string; error?: Error };
+
+export type TypeDiscordEmbed = APIEmbed | JSONEncodable<APIEmbed>;
 
 export interface HeroListItem {
   name: string;
