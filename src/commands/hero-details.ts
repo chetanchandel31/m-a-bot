@@ -4,12 +4,12 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { SlashCommand } from "src/types";
-import fetchHeroDetailsByHeroId from "./cmd-hero-details/fetchHeroDetailsByHeroId";
-import { getHeroIdFromInitialFetchedDataByName } from "./cmd-hero-details/getHeroIdFromInitialFetchedDataByName";
-import getHeroOverViewEmbed from "./cmd-hero-details/getSingleHeroEmbeds/getHeroOverViewEmbed";
-import { getRelatedHeroesEmbedsFromHeroDetails } from "./cmd-hero-details/getSingleHeroEmbeds/getRelatedHeroesEmbedsFromHeroDetails";
-import { getSkillEmbedsFromHeroDetails } from "./cmd-hero-details/getSingleHeroEmbeds/getSkillEmbedsFromHeroDetails";
-import { getStatsEmbedFromHeroDetails } from "./cmd-hero-details/getSingleHeroEmbeds/getStatsEmbedFromHeroDetails";
+import fetchHeroDetailsByHeroId from "../helpers/cmd-hero-details/fetchHeroDetailsByHeroId";
+import { getHeroIdFromInitialFetchedDataByName } from "../helpers/cmd-hero-details/getHeroIdFromInitialFetchedDataByName";
+import getHeroOverViewEmbed from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getHeroOverViewEmbed";
+import { getRelatedHeroesEmbedsFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getRelatedHeroesEmbedsFromHeroDetails";
+import { getSkillEmbedsFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getSkillEmbedsFromHeroDetails";
+import { getStatsEmbedFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getStatsEmbedFromHeroDetails";
 
 const fetchHeroDetailsAndSendEmbeds = async ({
   interaction,
