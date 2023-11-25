@@ -1,5 +1,5 @@
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import { CustomClient } from "src/types";
+import { CustomClient } from "../../types";
 
 type Params = {
   interaction: ChatInputCommandInteraction<CacheType>;

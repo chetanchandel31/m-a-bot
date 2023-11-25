@@ -1,6 +1,6 @@
-import { prependHttp } from "src/helpers/prependHttp";
-import { removeHtmlTags } from "src/helpers/removeHtmlTags";
-import { SingleHeroDetails, TypeDiscordEmbed } from "src/types";
+import { SingleHeroDetails, TypeDiscordEmbed } from "../../../types";
+import { prependHttp } from "../../prependHttp";
+import { removeHtmlTags } from "../../removeHtmlTags";
 
 export const getSkillEmbedsFromHeroDetails = (
   heroDetails: SingleHeroDetails

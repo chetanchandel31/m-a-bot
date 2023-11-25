@@ -1,4 +1,4 @@
-import { SingleHeroDetails, TypeDiscordEmbed } from "src/types";
+import { SingleHeroDetails, TypeDiscordEmbed } from "../../../types";
 
 const getHeroOverViewEmbed = (
   heroDetails: SingleHeroDetails

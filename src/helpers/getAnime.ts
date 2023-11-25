@@ -1,5 +1,5 @@
-import { AnimeSearchResponse, JikanErrorResponse } from "src/types";
 import { request } from "undici";
+import { AnimeSearchResponse, JikanErrorResponse } from "../types";
 
 export type GetAnimeQueryParams = {
   genres?: string;

@@ -1,5 +1,5 @@
-import { SingleHeroDetails, TypeResult } from "src/types";
 import { request } from "undici";
+import { SingleHeroDetails, TypeResult } from "../../types";
 
 const fetchHeroDetailsByHeroId = async (heroId: string) => {
   let result: TypeResult<SingleHeroDetails>;

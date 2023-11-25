@@ -5,10 +5,10 @@ import {
   ChatInputCommandInteraction,
   Interaction,
 } from "discord.js";
-import { CustomClient } from "src/types";
 import { fetchAndListAnimePage } from "../commands/searchAnime";
 import { fetchAndListCharacterPage } from "../commands/searchCharacter";
 import { fetchAndListMangaPage } from "../commands/searchManga";
+import { CustomClient } from "../types";
 
 const handleChatInputCommandInteraction = async (
   interaction: ChatInputCommandInteraction<CacheType>

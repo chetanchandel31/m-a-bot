@@ -13,8 +13,8 @@ import {
 } from "discord.js";
 import { getFormattedScore } from "../helpers/getFormattedScore";
 import { isJikanError } from "../helpers/isJikanError";
-import { JikanErrorResponse, SlashCommand } from "src/types";
 import { request } from "undici";
+import { JikanErrorResponse, SlashCommand } from "../types";
 
 interface MangaSearchResponse {
   pagination: Pagination;

@@ -1,5 +1,5 @@
-import { prependHttp } from "src/helpers/prependHttp";
-import { SingleHeroDetails, TypeDiscordEmbed } from "src/types";
+import { SingleHeroDetails, TypeDiscordEmbed } from "../../../types";
+import { prependHttp } from "../../prependHttp";
 
 export const getRelatedHeroesEmbedsFromHeroDetails = (
   heroDetails: SingleHeroDetails

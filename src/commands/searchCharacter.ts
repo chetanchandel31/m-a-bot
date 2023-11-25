@@ -12,8 +12,8 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import { isJikanError } from "../helpers/isJikanError";
-import { JikanErrorResponse, SlashCommand } from "src/types";
 import { request } from "undici";
+import { JikanErrorResponse, SlashCommand } from "../types";
 
 export interface CharacterSearchResponse {
   pagination: Pagination;

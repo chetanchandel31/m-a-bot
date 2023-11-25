@@ -15,7 +15,7 @@ import {
   Genre,
   JikanErrorResponse,
   SlashCommand,
-} from "src/types";
+} from "../types";
 import { getAnime } from "../helpers/getAnime";
 
 const getRandomNum = (min: number, max: number): number =>

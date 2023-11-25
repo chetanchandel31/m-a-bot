@@ -5,7 +5,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import Fuse from "fuse.js";
-import { SlashCommand } from "src/types";
+import { SlashCommand } from "../types";
 import { locationAreaNameToIdMap } from "../helpers/locationAreaNameToIdMap";
 import { getLocationAreaPokemons } from "../helpers/getLocationAreaPokemons";
 

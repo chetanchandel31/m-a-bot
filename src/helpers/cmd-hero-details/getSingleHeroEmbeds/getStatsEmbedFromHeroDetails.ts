@@ -1,5 +1,5 @@
-import { getProgressBar } from "src/helpers/getProgressBar";
-import { SingleHeroDetails, TypeDiscordEmbed } from "src/types";
+import { SingleHeroDetails, TypeDiscordEmbed } from "../../../types";
+import { getProgressBar } from "../../getProgressBar";
 
 export const getStatsEmbedFromHeroDetails = (
   data: SingleHeroDetails

@@ -13,12 +13,12 @@ import {
 } from "discord.js";
 import { getFormattedScore } from "../helpers/getFormattedScore";
 import { isJikanError } from "../helpers/isJikanError";
+import { request } from "undici";
 import {
   AnimeSearchResponse,
   JikanErrorResponse,
   SlashCommand,
-} from "src/types";
-import { request } from "undici";
+} from "../types";
 
 async function fetchAnimeByName({
   animeName,

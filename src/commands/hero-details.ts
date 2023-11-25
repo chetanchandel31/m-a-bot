@@ -3,13 +3,13 @@ import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
 } from "discord.js";
-import { SlashCommand } from "src/types";
 import fetchHeroDetailsByHeroId from "../helpers/cmd-hero-details/fetchHeroDetailsByHeroId";
 import { getHeroIdFromInitialFetchedDataByName } from "../helpers/cmd-hero-details/getHeroIdFromInitialFetchedDataByName";
 import getHeroOverViewEmbed from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getHeroOverViewEmbed";
 import { getRelatedHeroesEmbedsFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getRelatedHeroesEmbedsFromHeroDetails";
 import { getSkillEmbedsFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getSkillEmbedsFromHeroDetails";
 import { getStatsEmbedFromHeroDetails } from "../helpers/cmd-hero-details/getSingleHeroEmbeds/getStatsEmbedFromHeroDetails";
+import { SlashCommand } from "../types";
 
 const fetchHeroDetailsAndSendEmbeds = async ({
   interaction,

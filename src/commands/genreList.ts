@@ -1,5 +1,5 @@
 import { SlashCommandBuilder } from "discord.js";
-import { CustomClient, Genre, SlashCommand } from "src/types";
+import { CustomClient, Genre, SlashCommand } from "../types";
 // @ts-ignore
 import AsciiTable from "ascii-table";
 

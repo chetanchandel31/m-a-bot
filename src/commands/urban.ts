@@ -1,5 +1,5 @@
 import { EmbedBuilder, SlashCommandBuilder } from "discord.js";
-import { SlashCommand } from "src/types";
+import { SlashCommand } from "../types";
 import { request } from "undici";
 
 const trim = (str: string, max: number) =>

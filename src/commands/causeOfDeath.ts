@@ -1,5 +1,5 @@
 import { AttachmentBuilder, SlashCommandBuilder } from "discord.js";
-import { SlashCommand } from "src/types";
+import { SlashCommand } from "../types";
 import { createCanvas, Image, loadImage } from "@napi-rs/canvas";
 
 // Pass the entire Canvas object because you'll need access to its width and context
