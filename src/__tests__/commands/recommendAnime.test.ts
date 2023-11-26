@@ -1,6 +1,5 @@
 import { describe, expect, jest, test } from "@jest/globals";
 import { CacheType, ChatInputCommandInteraction } from "discord.js";
-import { AnimeSearchResponse, Genre } from "src/types";
 import {
   command,
   getRelatedGenre,
@@ -8,6 +7,7 @@ import {
 } from "../../commands/recommendAnime";
 import { getAnime, GetAnimeQueryParams } from "../../helpers/getAnime";
 import { isJikanError } from "../../helpers/isJikanError";
+import { AnimeSearchResponse, Genre } from "../../types";
 
 const mockTotalAnimeCount = 4;
 

@@ -1,5 +1,5 @@
 import { expect, jest, test } from "@jest/globals";
-import { AnimeSearchResponse } from "src/types";
+import { AnimeSearchResponse } from "../../types";
 import { request } from "undici";
 import { getAnime } from "../../helpers/getAnime";
 import { isJikanError } from "../../helpers/isJikanError";

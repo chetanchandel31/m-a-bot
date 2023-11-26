@@ -1,4 +1,8 @@
-import { SlashCommandBuilder } from "discord.js";
+import {
+  CacheType,
+  ChatInputCommandInteraction,
+  SlashCommandBuilder,
+} from "discord.js";
 import { fetchRankData } from "../helpers/cmd-hero-details/fetchRankData";
 import {
   ENUM_HEROES_RANK_DATA_COMMAND_OPTIONS,
@@ -11,6 +15,55 @@ import getRankDataTable from "../helpers/cmd-heroes-rank-data/getRankDataTable";
 import { divideArray } from "../helpers/divideArray";
 import { SlashCommand } from "../types";
 import getSortedRankData from "../helpers/cmd-heroes-rank-data/getSortedRankData";
+import { TypeRankData } from "../zodSchemas/rankDataResponse";
+
+const getCommandOptionRankDataMetric = (
+  interaction: ChatInputCommandInteraction<CacheType>
+) => {
+  return (interaction.options.getString(
+    ENUM_HEROES_RANK_DATA_COMMAND_OPTIONS.METRIC
+  ) || ENUM_RANK_DATA_METRICS.USAGE) as TypeRankDataMetric;
+};
+
+const getCommandOptionRank = (
+  interaction: ChatInputCommandInteraction<CacheType>
+) => {
+  return (interaction.options.getString(
+    ENUM_HEROES_RANK_DATA_COMMAND_OPTIONS.RANK
+  ) || ENUM_RANK_OPTIONS.ALL) as TypeRankOption;
+};
+
+const sendRankDataTable = async ({
+  interaction,
+  rankData,
+}: {
+  interaction: ChatInputCommandInteraction<CacheType>;
+  rankData: TypeRankData;
+}) => {
+  const rankOption = getCommandOptionRank(interaction);
+  const rankDataMetric = getCommandOptionRankDataMetric(interaction);
+
+  const sortedRankData = getSortedRankData({
+    rankData,
+    rankDataMetric,
+  });
+  const rankDataChunks = divideArray(sortedRankData.data.data, 40);
+
+  await interaction.editReply(
+    `***${rankDataMetric}*** stats for heroes in rank: ***${rankOption}***`
+  );
+
+  for (let chunkIndex = 0; chunkIndex < rankDataChunks.length; chunkIndex++) {
+    const rankDataChunk = rankDataChunks[chunkIndex];
+    const rankDataTable = getRankDataTable({
+      rankData: rankDataChunk,
+      title: `Page: ${chunkIndex + 1}/${rankDataChunks.length}`,
+      rankDataMetric: rankDataMetric,
+    });
+
+    await interaction.followUp(rankDataTable);
+  }
+};
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -42,42 +95,17 @@ export const command: SlashCommand = {
   execute: async (interaction) => {
     await interaction.deferReply();
 
-    const rankOption = (interaction.options.getString(
-      ENUM_HEROES_RANK_DATA_COMMAND_OPTIONS.RANK
-    ) || ENUM_RANK_OPTIONS.ALL) as TypeRankOption;
-    const rankDataMetric = (interaction.options.getString(
-      ENUM_HEROES_RANK_DATA_COMMAND_OPTIONS.METRIC
-    ) || ENUM_RANK_DATA_METRICS.USAGE) as TypeRankDataMetric;
+    const rankOption = getCommandOptionRank(interaction);
 
     const rankDataResult = await fetchRankData({ rank: rankOption });
 
     if (rankDataResult.isSuccess === false) {
       interaction.editReply(rankDataResult.errorMessage);
     } else {
-      const sortedRankData = getSortedRankData({
+      sendRankDataTable({
+        interaction,
         rankData: rankDataResult.result,
-        rankDataMetric,
       });
-      const rankDataChunks = divideArray(sortedRankData.data.data, 40);
-
-      await interaction.editReply(
-        `***${rankDataMetric}*** stats for heroes in rank: ***${rankOption}***`
-      );
-
-      for (
-        let chunkIndex = 0;
-        chunkIndex < rankDataChunks.length;
-        chunkIndex++
-      ) {
-        const rankDataChunk = rankDataChunks[chunkIndex];
-        const rankDataTable = getRankDataTable({
-          rankData: rankDataChunk,
-          title: `Page: ${chunkIndex + 1}/${rankDataChunks.length}`,
-          rankDataMetric: rankDataMetric,
-        });
-
-        await interaction.followUp(rankDataTable);
-      }
     }
   },
 };
