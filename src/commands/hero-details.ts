@@ -22,6 +22,8 @@ import { TypeRankData } from "../zodSchemas/rankDataResponse";
 import getRankEmbedContent from "../helpers/cmd-hero-details/getRankEmbedContent";
 import getAutocompleteOptionsHeroName from "../helpers/cmd-hero-details/getAutocompleteOptionsHeroName";
 
+const commandOptionsNames = { HERO_NAME: "hero-name" } as const;
+
 const handleAutocomplete = async (
   interaction: AutocompleteInteraction<CacheType>
 ) => {
@@ -70,7 +72,9 @@ const fetchHeroAndSendBuildInfoEmbeds = async ({
 }) => {
   const heroDetailsResult = await fetchHeroDetailsByHeroId(relatedHeroId);
   let interactionFollowUpPayload: Parameters<typeof interaction.followUp>[0];
-  const heroName = interaction.options.getString("hero-name") as string; // it is "required" option so will always be there
+  const heroName = interaction.options.getString(
+    commandOptionsNames.HERO_NAME
+  ) as string; // it is "required" option so will always be there
 
   if (heroDetailsResult.isSuccess === false) {
     interactionFollowUpPayload = heroDetailsResult.errorMessage;
@@ -200,7 +204,7 @@ export const command: SlashCommand = {
     .setDescription("Get a ml hero's details")
     .addStringOption((option) =>
       option
-        .setName("hero-name")
+        .setName(commandOptionsNames.HERO_NAME)
         .setDescription("name of the hero you want details of")
         .setRequired(true)
         .setAutocomplete(true)
@@ -210,7 +214,9 @@ export const command: SlashCommand = {
   async execute(interaction) {
     await interaction.deferReply();
 
-    const heroName = interaction.options.getString("hero-name") as string; // it is "required" option so will always be there
+    const heroName = interaction.options.getString(
+      commandOptionsNames.HERO_NAME
+    ) as string; // it is "required" option so will always be there
 
     const relatedHeroId = getHeroIdFromInitialFetchedDataByName({
       heroName,
