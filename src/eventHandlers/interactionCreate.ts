@@ -63,7 +63,7 @@ const handleButtonInteraction = async (
 
     // if one of `interaction.update` or `inteaction.reply` is used, interaction is considered complete and the other cannot be used
 
-    await fetchAndListAnimePage({ animeName, interaction, page });
+    await fetchAndListAnimePage({ animeName, interaction, page, sfw: false });
   } else if (interaction.customId.startsWith("search-manga")) {
     const mangaName = interaction.customId.slice(13);
     const page = Number(interaction.message.content.slice(6).split("/")[0]) + 1;

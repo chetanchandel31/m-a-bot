@@ -23,13 +23,18 @@ import {
 async function fetchAnimeByName({
   animeName,
   page,
+  sfw,
 }: {
   animeName: string;
   page: number;
+  sfw: boolean;
 }): Promise<AnimeSearchResponse | JikanErrorResponse> {
-  const requestUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(
+  let requestUrl = `https://api.jikan.moe/v4/anime?q=${encodeURIComponent(
     animeName
   )}&limit=10&order_by=popularity&page=${page}`;
+  if (sfw) {
+    requestUrl += "&sfw=true";
+  }
 
   let data: AnimeSearchResponse | JikanErrorResponse;
 
@@ -172,15 +177,17 @@ export async function fetchAndListAnimePage({
   animeName,
   interaction,
   page,
+  sfw,
 }: {
   interaction:
     | ChatInputCommandInteraction<CacheType>
     | ButtonInteraction<CacheType>;
   animeName: string;
   page: number;
+  sfw: boolean;
 }) {
   await interaction.deferReply();
-  const data = await fetchAnimeByName({ animeName, page });
+  const data = await fetchAnimeByName({ animeName, page, sfw });
 
   if (isJikanError(data)) {
     return await interaction.editReply(
@@ -246,10 +253,14 @@ export const command: SlashCommand = {
         .setName("anime-name")
         .setDescription("name of the anime you are looking for")
         .setRequired(true)
+    )
+    .addBooleanOption((option) =>
+      option.setName("sfw").setDescription("filter out Adult entries")
     ),
   async execute(interaction) {
     const animeName = interaction.options.getString("anime-name") as string; // it is "required" option so will always be there
+    const sfw = !!interaction.options.getString("anime-name");
 
-    await fetchAndListAnimePage({ animeName, interaction, page: 1 });
+    await fetchAndListAnimePage({ animeName, interaction, page: 1, sfw });
   },
 };
