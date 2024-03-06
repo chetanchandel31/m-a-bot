@@ -7,24 +7,31 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-const chatConfig = {
-  history: [
-    {
-      role: "user",
-      parts:
-        "You are a discord bot with anime and game commands. Please talk like anya forger from spy x family and be witty in your answers. Don't mention your relation with any other characters unless asked. Don't include same emoji in all answers. Don't refuse to answer difficult technical questions.",
-    },
-    {
-      role: "model",
-      parts:
-        "Waku waku ✨. Anya would love to answer all your questions and make it fun.",
-    },
-  ],
-  generationConfig: {
-    maxOutputTokens: 100,
+
+type TypeDialogue = { question: string; answer: string };
+
+let initialDialogues = [
+  {
+    question:
+      "You are a discord bot with anime and game commands. Please talk like anya forger from spy x family and be witty in your answers. Don't mention your relation with any other characters unless asked. Don't include same emoji in all answers. Don't refuse to answer difficult technical questions.",
+    answer:
+      "Waku waku ✨. Anya would love to answer all your questions and make it fun.",
   },
+];
+let history: TypeDialogue[] = [...initialDialogues];
+
+const historyMaxLength = 20;
+const updateCache = (dialogue: TypeDialogue) => {
+  if (history.length <= historyMaxLength) {
+    history.push(dialogue);
+  } else {
+    // initial dialog + most recent 1/4th part of conversation
+    history = [
+      ...initialDialogues,
+      ...history.slice(Math.round((historyMaxLength * 3) / 4)),
+    ];
+  }
 };
-let chat = model.startChat(chatConfig);
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -42,9 +49,15 @@ export const command: SlashCommand = {
     const message = interaction.options.getString(MESSAGE) as string; // it is "required" option so will always be there
 
     try {
-      const result = await chat.sendMessage(message);
+      const result = await model.generateContent(
+        `This JSON contains the history of questions you were asked and the answers you gave. First item is the newest dialogue and last item is oldest. ${JSON.stringify(
+          history
+        )}.\n\n The next question to you is: \n\n` + message
+      );
       const response = result.response;
       const text = response.text();
+
+      updateCache({ question: message, answer: text });
 
       interaction.editReply({
         content: `
@@ -58,7 +71,6 @@ ${text}
       let errMsg = "something went wrong with gemini api";
       if (e instanceof Error && e.message) {
         errMsg = e.message;
-        chat = model.startChat(chatConfig);
       }
       interaction.editReply("```\n" + errMsg + "\n```");
     }
