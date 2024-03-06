@@ -59,7 +59,7 @@ ${text}
         errMsg = e.message;
         chat = model.startChat(chatConfig);
       }
-      interaction.editReply(errMsg);
+      interaction.editReply("```\n" + errMsg + "\n```");
     }
   },
 };
