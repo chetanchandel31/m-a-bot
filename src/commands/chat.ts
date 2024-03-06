@@ -49,6 +49,7 @@ export const command: SlashCommand = {
       interaction.editReply({
         content: `
 > <@${interaction.user.id}>: ${message}
+
 ${text}    
 `,
       });
