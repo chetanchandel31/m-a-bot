@@ -31,7 +31,7 @@ export const command: SlashCommand = {
     await interaction.client.user
       .setAvatar(avatar?.url || "")
       .then(() => {
-        interaction.editReply("done 🤝");
+        interaction.reply("done 🤝");
       })
       .catch(async (err) => {
         error = true;
