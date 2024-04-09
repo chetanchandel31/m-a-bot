@@ -49,7 +49,7 @@ test("shouldn't make call to incorrect url if a query is passed as `undefiend`",
 });
 
 test("can call undici's `request` with base url and multiple query param ", () => {
-  getAnime({ limit: 10, page: 4, genres: "1234", start_date: 2018 });
+  getAnime({ limit: 10, page: 4, genres: "1234", start_date: `2018-01-01` });
 
   expect(request).toBeCalledWith(
     "https://api.jikan.moe/v4/anime?limit=10&page=4&genres=1234&start_date=2018"

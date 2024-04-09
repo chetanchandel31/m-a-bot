@@ -335,7 +335,7 @@ describe("getTotalAnimeCount", () => {
 
     const totalAnimeCount = await getTotalAnimeCount({
       relatedGenre,
-      start_date: 2016,
+      start_date: `2016-01-01`,
     });
 
     expect(totalAnimeCount).toBe(mockTotalAnimeCount);
@@ -364,7 +364,7 @@ describe("getTotalAnimeCount", () => {
 
     const totalAnimeCount = await getTotalAnimeCount({
       relatedGenre,
-      start_date: 2016,
+      start_date: `2016-01-01`,
     });
 
     expect(isJikanError(totalAnimeCount)).toBe(true);
