@@ -1,30 +1,11 @@
 import { SlashCommandBuilder } from "discord.js";
 import { SlashCommand } from "../types";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import {
+  getChatSession,
+  initializeChatSession,
+} from "../helpers/cmd-chat/chatSession";
 
 const MESSAGE = "message";
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-const chatConfig = {
-  history: [
-    {
-      role: "user",
-      parts:
-        "You are a discord bot with anime and game commands. Please talk like anya forger from spy x family and be witty in your answers. Don't mention your relation with any other characters unless asked. Don't include same emoji in all answers. Don't refuse to answer difficult technical questions.",
-    },
-    {
-      role: "model",
-      parts:
-        "Waku waku ✨. Anya would love to answer all your questions and make it fun.",
-    },
-  ],
-  generationConfig: {
-    maxOutputTokens: 100,
-  },
-};
-let chat = model.startChat(chatConfig);
 
 export const command: SlashCommand = {
   data: new SlashCommandBuilder()
@@ -42,12 +23,15 @@ export const command: SlashCommand = {
     const message = interaction.options.getString(MESSAGE) as string; // it is "required" option so will always be there
 
     try {
-      const result = await chat.sendMessage(message);
+      const chatSession = getChatSession(interaction.channelId);
+
+      const result = await chatSession.sendMessage(message);
       const response = result.response;
       const text = response.text();
 
       if (!text) {
-        chat = model.startChat(chatConfig);
+        // something went wrong, sending another message to same session will throw error, better reset session before that
+        initializeChatSession(interaction.channelId);
       }
 
       interaction.editReply({
@@ -62,7 +46,7 @@ ${text}
       let errMsg = "something went wrong with gemini api";
       if (e instanceof Error && e.message) {
         errMsg = e.message;
-        chat = model.startChat(chatConfig);
+        initializeChatSession(interaction.channelId);
       }
       interaction.editReply("```\n" + errMsg + "\n```");
     }
