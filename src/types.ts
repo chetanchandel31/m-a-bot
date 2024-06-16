@@ -14,6 +14,16 @@ export type TypeResult<T> =
   | { isSuccess: true; result: T }
   | { isSuccess: false; errorMessage: string; error?: Error };
 
+export type TypeChatConfig = {
+  history: {
+    role: string;
+    parts: string;
+  }[];
+  generationConfig: {
+    maxOutputTokens: number;
+  };
+};
+
 export type TypeDiscordEmbed = APIEmbed | JSONEncodable<APIEmbed>;
 
 export interface HeroListItem {
