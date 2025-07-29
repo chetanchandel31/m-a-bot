@@ -142,6 +142,7 @@ function getEmbedsFromManga(manga: MangaSearchResponse["data"][0]) {
       inline: true,
     },
     {
+      // empty space
       name: "\u200b",
       value: "\u200b",
     },
@@ -174,6 +175,7 @@ function getEmbedsFromManga(manga: MangaSearchResponse["data"][0]) {
       inline: true,
     },
     {
+      // empty space
       name: "\u200b",
       value: "\u200b",
     },

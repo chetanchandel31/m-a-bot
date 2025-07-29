@@ -16,6 +16,7 @@ const getEmbedsFromAnime = (randomAnime: AnimeSearchResponse["data"][0]) => {
       inline: true,
     },
     {
+      // empty space
       name: "\u200b",
       value: "\u200b",
     },
@@ -54,6 +55,7 @@ const getEmbedsFromAnime = (randomAnime: AnimeSearchResponse["data"][0]) => {
       inline: true,
     },
     {
+      // empty space
       name: "\u200b",
       value: "\u200b",
     },

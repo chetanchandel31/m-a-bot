@@ -98,6 +98,7 @@ function getEmbedsFromCharacter(character: CharacterSearchResponse["data"][0]) {
       inline: true,
     },
     {
+      // empty space
       name: "\u200b",
       value: "\u200b",
     },
